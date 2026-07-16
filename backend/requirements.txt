@@ -13,3 +13,4 @@ minio
 python-dotenv
 alembic
 pytest
+firebase-admin

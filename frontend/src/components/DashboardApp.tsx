@@ -17,8 +17,6 @@ import {
   ShieldAlert,
   Loader2,
   Lock,
-  ArrowRight,
-  Sparkles,
   Send,
   Search,
   Folder,
@@ -30,10 +28,9 @@ import {
   Info
 } from "lucide-react";
 
-export default function Home() {
-  const { user, loading: authLoading, getToken } = useAuth();
+export default function DashboardApp() {
+  const { user, getToken } = useAuth();
   const userId = user?.uid;
-  const isLoaded = !authLoading;
   const [activeTab, setActiveTab] = useState("dashboard");
   const [orgName, setOrgName] = useState("Enterprise Workspace");
   const [organizationId, setOrganizationId] = useState("org_default_test_id");
@@ -393,57 +390,6 @@ export default function Home() {
       setIsChatSending(false);
     }
   };
-
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50">
-        <div className="text-center space-y-4">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto" />
-          <p className="text-sm font-semibold text-slate-500">Loading workspace...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Not Authenticated view
-  if (!userId) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-black p-6 overflow-hidden relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gold-900/20 via-black to-black opacity-60"></div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="relative text-center p-12 bg-[#050505]/80 border border-gold-900/30 rounded-[2rem] shadow-[0_0_50px_rgba(205,157,57,0.05)] max-w-lg w-full backdrop-blur-2xl"
-        >
-          <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1, rotate: 360 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="w-24 h-24 bg-gradient-to-br from-gold-500/10 to-gold-600/5 text-gold-400 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-gold-500/20 shadow-inner"
-          >
-            <Sparkles className="w-12 h-12" />
-          </motion.div>
-          <h1 className="text-5xl font-extrabold mb-4 bg-gradient-to-b from-white via-gray-200 to-gray-500 bg-clip-text text-transparent tracking-tight">
-            NEXORA
-          </h1>
-          <p className="text-gray-400 mb-10 max-w-md mx-auto leading-relaxed text-lg">
-            Secure, AI-powered collaboration and document intelligence for elite teams.
-          </p>
-          <motion.a 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            href="/sign-in" 
-            className="inline-flex items-center justify-center bg-gradient-to-r from-gold-500 to-gold-600 text-black font-extrabold px-8 py-4 rounded-xl shadow-[0_0_30px_rgba(205,157,57,0.3)] hover:shadow-[0_0_40px_rgba(205,157,57,0.5)] transition-all duration-300 w-full gap-3 text-lg"
-          >
-            <span>Access Workspace</span>
-            <ArrowRight className="w-5 h-5" />
-          </motion.a>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-black text-gray-100 overflow-hidden font-sans selection:bg-gold-500/30">
