@@ -2,12 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from app.db.session import get_db
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_permission
 from app.features.organizations import schemas
 from app.features.organizations.service import organization_service
 from app.core.responses import success_response, StandardResponse
 from app.features.users.models import User
-from app.features.organizations.models import Membership
+from app.features.organizations.models import Membership, Organization
+from app.core.permissions import PolicyEngine
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
@@ -34,8 +35,20 @@ def get_my_orgs(
 def get_org_members(
     org_id: str,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    membership = Depends(require_permission("organization.members.read"))
 ):
+    org = db.query(Organization).filter(Organization.id == org_id).first()
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+        
+    # Duck-typing the org to match PolicyEngine checks (needs organization_id or id)
+    # Our PolicyEngine checks resource.organization_id.
+    class OrgResource:
+        organization_id = org.id
+        
+    if not PolicyEngine.can(membership, "organization.members.read", OrgResource()):
+        raise HTTPException(status_code=403, detail="Not authorized to read organization members")
+        
     members = organization_service.get_organization_members(db, org_id=org_id)
     return success_response(data=members, message="Organization members retrieved successfully")
 

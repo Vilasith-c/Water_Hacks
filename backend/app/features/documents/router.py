@@ -1,19 +1,22 @@
-from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from fastapi.responses import FileResponse
 import os
 
 from app.db.session import get_db
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_permission
+from app.core.permissions import PolicyEngine
 from app.features.documents import models, schemas
 from app.features.documents.storage import storage_service
+from app.features.audit.service import AuditService
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 @router.post("/folders", response_model=schemas.FolderResponse)
 def create_folder(
     folder: schemas.FolderCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -25,6 +28,18 @@ def create_folder(
     db.add(new_folder)
     db.commit()
     db.refresh(new_folder)
+    
+    user_id = current_user.get("sub") if isinstance(current_user, dict) else None
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Create Folder",
+        resource=new_folder.name,
+        resource_id=new_folder.id,
+        details={"organization_id": folder.organization_id},
+        request=request
+    )
+    
     return new_folder
 
 @router.get("/folders/{organization_id}", response_model=List[schemas.FolderResponse])
@@ -39,6 +54,7 @@ def get_folders(
 def update_folder(
     folder_id: str,
     folder_in: schemas.FolderUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -53,11 +69,24 @@ def update_folder(
         
     db.commit()
     db.refresh(folder)
+    
+    user_id = current_user.get("sub") if isinstance(current_user, dict) else None
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Update Folder",
+        resource=folder.name,
+        resource_id=folder.id,
+        details={"name": folder_in.name, "parent_id": folder_in.parent_id},
+        request=request
+    )
+    
     return folder
 
 @router.delete("/folders/{folder_id}")
 def delete_folder(
     folder_id: str,
+    request: Request,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -65,12 +94,23 @@ def delete_folder(
     if not folder:
         raise HTTPException(status_code=404, detail="Folder not found")
         
+    user_id = current_user.get("sub") if isinstance(current_user, dict) else None
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Delete Folder",
+        resource=folder.name,
+        resource_id=folder.id,
+        request=request
+    )
+    
     db.delete(folder)
     db.commit()
     return {"message": "Folder deleted successfully"}
 
 @router.post("/upload", response_model=schemas.DocumentResponse)
 async def upload_document(
+    request: Request,
     organization_id: str = Form(...),
     folder_id: Optional[str] = Form(None),
     project_id: Optional[str] = Form(None),
@@ -114,11 +154,22 @@ async def upload_document(
     db.add(version)
     db.commit()
     
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Upload Document",
+        resource=doc.filename,
+        resource_id=doc.id,
+        details={"organization_id": organization_id, "size_bytes": size_bytes},
+        request=request
+    )
+    
     return doc
 
 @router.post("/{document_id}/version", response_model=schemas.DocumentResponse)
 async def upload_new_version(
     document_id: str,
+    request: Request,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
@@ -156,6 +207,17 @@ async def upload_new_version(
     
     db.commit()
     db.refresh(doc)
+    
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Upload New Version",
+        resource=doc.filename,
+        resource_id=doc.id,
+        details={"version_number": next_ver_num, "size_bytes": size_bytes},
+        request=request
+    )
+    
     return doc
 
 @router.get("/{document_id}/versions", response_model=List[schemas.DocumentVersionResponse])
@@ -172,6 +234,7 @@ def get_versions(
 def restore_version(
     document_id: str,
     version_id: str,
+    request: Request,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -185,12 +248,25 @@ def restore_version(
     
     db.commit()
     db.refresh(doc)
+    
+    user_id = current_user.get("sub") if isinstance(current_user, dict) else None
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Restore Version",
+        resource=doc.filename,
+        resource_id=doc.id,
+        details={"version_id": version_id, "version_number": ver.version_number},
+        request=request
+    )
+    
     return doc
 
 @router.put("/{document_id}", response_model=schemas.DocumentResponse)
 def update_document(
     document_id: str,
     doc_in: schemas.DocumentUpdate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -213,18 +289,43 @@ def update_document(
         
     db.commit()
     db.refresh(doc)
+    
+    user_id = current_user.get("sub") if isinstance(current_user, dict) else None
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Update Document Metadata",
+        resource=doc.filename,
+        resource_id=doc.id,
+        details=doc_in.model_dump(exclude_unset=True) if hasattr(doc_in, 'model_dump') else doc_in.dict(exclude_unset=True),
+        request=request
+    )
+    
     return doc
 
 @router.delete("/{document_id}")
 def delete_document(
     document_id: str,
+    request: Request,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    membership = Depends(require_permission("documents.delete"))
 ):
     doc = db.query(models.Document).filter(models.Document.id == document_id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
         
+    if not PolicyEngine.can(membership, "documents.delete", doc):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this document")
+        
+    AuditService.log_action(
+        db=db,
+        user_id=membership.user_id,
+        action="Delete Document",
+        resource=doc.filename,
+        resource_id=doc.id,
+        request=request
+    )
+    
     db.delete(doc)
     db.commit()
     return {"message": "Document deleted successfully"}
@@ -232,6 +333,7 @@ def delete_document(
 @router.get("/{document_id}/download")
 def download_document(
     document_id: str,
+    request: Request,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -243,6 +345,16 @@ def download_document(
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="Physical file missing")
         
+    user_id = current_user.get("sub") if isinstance(current_user, dict) else None
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Download Document",
+        resource=doc.filename,
+        resource_id=doc.id,
+        request=request
+    )
+    
     return FileResponse(path=file_path, filename=doc.filename)
 
 @router.get("/org/{organization_id}", response_model=List[schemas.DocumentResponse])
@@ -258,6 +370,7 @@ def get_documents(
 def share_document(
     document_id: str,
     share_in: schemas.DocumentShareCreate,
+    request: Request,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
@@ -270,4 +383,17 @@ def share_document(
     db.add(share)
     db.commit()
     db.refresh(share)
+    
+    user_id = current_user.get("sub") if isinstance(current_user, dict) else None
+    doc = db.query(models.Document).filter(models.Document.id == document_id).first()
+    AuditService.log_action(
+        db=db,
+        user_id=user_id,
+        action="Share Document",
+        resource=doc.filename if doc else "Unknown",
+        resource_id=document_id,
+        details={"shared_with_user": share_in.user_id, "shared_with_dept": share_in.department_id, "role": share_in.role},
+        request=request
+    )
+    
     return share
