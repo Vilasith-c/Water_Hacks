@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Enterprise Collaboration API"
-    DATABASE_URL: str = "postgresql://workspace_user:mysecretpassword@127.0.0.1:25432/workspace_ai"
+    DATABASE_URL: str
     
     # Auth (Firebase)
     FIREBASE_PROJECT_ID: str = ""
