@@ -38,7 +38,12 @@ workspace-ai/
 - A valid [Firebase Project](https://console.firebase.google.com/) for authentication setup
 - A valid [Groq API Key](https://console.groq.com/) for LLM inference
 
-## Installation
+## Installation & Deployment
+
+This project is fully containerized. You can run the entire stack (Frontend, Backend, Database, Redis, MinIO, pgAdmin) locally using Docker.
+
+> [!IMPORTANT]
+> **Docker Desktop Required:** Ensure that the [Docker Desktop](https://www.docker.com/products/docker-desktop/) application is running and actively open on your machine before attempting to build or start the containers.
 
 1. **Clone the repository**:
    ```bash
@@ -46,35 +51,10 @@ workspace-ai/
    cd workspace-ai
    ```
 
-2. **Start the Infrastructure**:
-   ```bash
-   docker-compose up -d
-   ```
-   *This starts PostgreSQL (with pgvector), Redis, MinIO, and pgAdmin.*
-
-3. **Setup the Backend**:
-   ```bash
-   cd backend
-   python -m venv venv
-   # On Windows: venv\Scripts\activate
-   # On Mac/Linux: source venv/bin/activate
-   pip install -r requirements.txt
-   ```
-
-4. **Setup the Frontend**:
-   ```bash
-   cd ../frontend
-   npm install --legacy-peer-deps
-   ```
-
-## Configuration
-
-1. **Frontend Setup**:
-   Navigate to the `frontend` folder and copy the environment example:
-   ```bash
-   cp .env.example .env.local
-   ```
-   Add your Firebase Web App configuration credentials:
+2. **Configure Environment Variables**:
+   Copy the example environment files and configure your Firebase and Groq keys.
+   
+   *Frontend (`frontend/.env`):*
    ```env
    NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
@@ -84,30 +64,32 @@ workspace-ai/
    NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
    ```
 
-2. **Backend Setup**:
-   Navigate to the `backend` folder and create a `.env` file:
+   *Backend (`backend/.env`):*
    ```env
-   DATABASE_URL=postgresql://postgres:password@localhost:5432/workspace_ai
    FIREBASE_PROJECT_ID=your_project_id
    GROQ_API_KEY=your_groq_api_key
+   GROQ_MODEL=llama-3.3-70b-versatile
    ```
+   *(Note: The `DATABASE_URL` is automatically configured by `docker-compose.yml` internally!)*
 
-## Running the Application
-
-1. **Start the FastAPI Backend**:
+3. **Start the Entire Application Stack**:
+   With Docker Desktop running, execute the following command from the root folder:
    ```bash
-   cd backend
-   # Ensure virtual environment is active
-   uvicorn main:app --reload --port 8000
+   docker compose up --build -d
    ```
 
-2. **Start the Next.js Frontend**:
-   ```bash
-   cd frontend
-   npm run dev
-   ```
+4. **Access the Application**:
+   Once the containers have successfully spun up, access the platform by navigating to:
+   - **Main Web App**: [http://localhost:3000](http://localhost:3000)
+   - **Backend API Docs**: [http://localhost:8000/docs](http://localhost:8000/docs)
+   - **pgAdmin (Database UI)**: [http://localhost:5050](http://localhost:5050)
+   - **MinIO Console**: [http://localhost:9001](http://localhost:9001)
 
-Access the application at `http://localhost:3000`.
+> [!TIP]
+> **Sharing the App (Local Network / Wi-Fi)**: To allow colleagues on the same network to access the app, find your machine's local IP address (run `ipconfig` on Windows or `ifconfig` on Mac/Linux). They can then navigate to `http://<your-local-ip>:3000`.
+> 
+> **Sharing the App (Internet)**: To share your local deployment over the internet using a public URL, you can utilize tools like [ngrok](https://ngrok.com/) or [localtunnel](https://theboroer.github.io/localtunnel-www/). 
+> Simply run `ngrok http 3000` to generate a secure public URL that tunnels to your running frontend container!
 
 ## Application Screenshots
 

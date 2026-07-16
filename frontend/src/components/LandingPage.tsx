@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   Sparkles,
   Workflow,
+  type LucideIcon,
 } from "lucide-react";
 
 const navItems = ["Product", "Security", "AI Gateway", "Pricing"];
@@ -26,6 +27,24 @@ const activityRows = [
   ["09:21", "Uploaded", "Employee_Handbook.pdf", "Internal"],
   ["09:24", "Approved", "Leave_Policy_v2.docx", "HR"],
   ["10:00", "Audited", "Access rules engine", "Secure"],
+];
+
+const securityCards: { icon: LucideIcon; title: string; detail: string }[] = [
+  {
+    icon: LockKeyhole,
+    title: "Scoped access",
+    detail: "Project, department, document, and folder-level controls.",
+  },
+  {
+    icon: MessageSquareCode,
+    title: "Provider choice",
+    detail: "Bring your own AI key and route requests through governed settings.",
+  },
+  {
+    icon: Fingerprint,
+    title: "Immutable logs",
+    detail: "Every upload, share, approval, restore, and AI action stays traceable.",
+  },
 ];
 
 export default function LandingPage() {
@@ -205,15 +224,11 @@ export default function LandingPage() {
 
       <section id="security" className="border-t border-white/10 px-5 py-20 sm:px-8">
         <div className="mx-auto grid max-w-7xl gap-4 md:grid-cols-3">
-          {[
-            [LockKeyhole, "Scoped access", "Project, department, document, and folder-level controls."],
-            [MessageSquareCode, "Provider choice", "Bring your own AI key and route requests through governed settings."],
-            [Fingerprint, "Immutable logs", "Every upload, share, approval, restore, and AI action stays traceable."],
-          ].map(([Icon, title, detail]) => (
-            <div key={title as string} className="rounded-lg border border-white/10 bg-[#0b0b0b] p-6">
+          {securityCards.map(({ icon: Icon, title, detail }) => (
+            <div key={title} className="rounded-lg border border-white/10 bg-[#0b0b0b] p-6">
               <Icon className="h-6 w-6 text-gold-300" />
-              <h3 className="mt-5 text-lg font-black text-white">{title as string}</h3>
-              <p className="mt-3 text-sm leading-6 text-zinc-500">{detail as string}</p>
+              <h3 className="mt-5 text-lg font-black text-white">{title}</h3>
+              <p className="mt-3 text-sm leading-6 text-zinc-500">{detail}</p>
             </div>
           ))}
         </div>

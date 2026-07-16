@@ -3,8 +3,8 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
-  title: "Enterprise Collab Platform",
-  description: "Secure AI-powered enterprise collaboration platform.",
+  title: "NEXORA | Secure Document Intelligence",
+  description: "Secure AI-powered document intelligence and enterprise collaboration.",
 };
 
 export default function RootLayout({
