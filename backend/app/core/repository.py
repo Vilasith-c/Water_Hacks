@@ -1,6 +1,5 @@
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 
 ModelType = TypeVar("ModelType")
 CreateSchemaType = TypeVar("CreateSchemaType")
@@ -46,8 +45,10 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         db.refresh(db_obj)
         return db_obj
 
-    def remove(self, db: Session, *, id: Any) -> ModelType:
-        obj = db.query(self.model).get(id)
+    def remove(self, db: Session, *, id: Any) -> Optional[ModelType]:
+        obj = db.query(self.model).filter(self.model.id == id).first()
+        if obj is None:
+            return None
         db.delete(obj)
         db.commit()
         return obj

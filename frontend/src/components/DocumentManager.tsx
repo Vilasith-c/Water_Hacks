@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -418,26 +419,26 @@ export default function DocumentManager({ organizationId }: { organizationId: st
   const currentDocs = documents.filter(d => d.folder_id === currentFolderId);
 
   return (
-    <div className="flex gap-6 relative items-start">
+    <div className="flex gap-6 relative items-start text-gray-100">
       {/* File Browser Area */}
-      <div className="flex-1 bg-white p-6 rounded-xl shadow-sm border border-gray-150 space-y-6">
+      <div className="flex-1 bg-[#0a0a0a] p-6 rounded-2xl shadow-2xl border border-[#1a1a1a] space-y-6">
         
         {/* Top Control Bar */}
         <div className="flex justify-between items-center flex-wrap gap-4">
           {/* Breadcrumbs */}
-          <div className="flex items-center gap-1.5 text-sm text-gray-500 font-medium overflow-x-auto py-1">
+          <div className="flex items-center gap-1.5 text-sm text-gray-400 font-medium overflow-x-auto py-1">
             <button 
               onClick={() => handleBreadcrumbClick(null, -1)}
-              className="hover:text-blue-600 transition-colors"
+              className="hover:text-gold-400 transition-colors"
             >
               Root
             </button>
             {folderPath.map((folder, index) => (
               <div key={folder.id} className="flex items-center gap-1">
-                <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+                <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
                 <button
                   onClick={() => handleBreadcrumbClick(folder.id, index)}
-                  className="hover:text-blue-600 transition-colors max-w-[120px] truncate"
+                  className="hover:text-gold-400 transition-colors max-w-[120px] truncate"
                 >
                   {folder.name}
                 </button>
@@ -449,13 +450,13 @@ export default function DocumentManager({ organizationId }: { organizationId: st
           <div className="flex gap-3 items-center">
             <button
               onClick={() => setShowFolderForm(!showFolderForm)}
-              className="border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all duration-200"
+              className="border border-[#222] hover:bg-[#111] text-gray-300 hover:text-white font-semibold px-4 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all duration-200"
             >
               <FolderPlus className="w-3.5 h-3.5" />
               <span>Add Folder</span>
             </button>
             
-            <label className={`cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700 transition flex items-center gap-1.5 ${isUploading ? 'opacity-50' : ''}`}>
+            <label className={`cursor-pointer bg-gradient-to-r from-gold-600 to-gold-500 text-black hover:from-gold-500 hover:to-gold-400 px-4 py-2 rounded-lg text-xs font-bold shadow-[0_0_15px_rgba(205,157,57,0.3)] transition flex items-center gap-1.5 ${isUploading ? 'opacity-50' : ''}`}>
               {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
               <span>{isUploading ? 'Uploading...' : 'Upload File'}</span>
               <input type="file" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
@@ -464,13 +465,13 @@ export default function DocumentManager({ organizationId }: { organizationId: st
         </div>
 
         {/* Upload Settings Drawer (shown next to upload option) */}
-        <div className="bg-slate-50 rounded-xl p-4 border border-gray-150 grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium text-gray-600">
+        <div className="bg-[#111] rounded-xl p-4 border border-[#222] grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-medium text-gray-400">
           <div>
             <label className="block text-gray-500 mb-1 font-bold">PROJECT</label>
             <select 
               value={uploadProject} 
               onChange={e => setUploadProject(e.target.value)}
-              className="bg-white border border-gray-200 rounded p-1.5 w-full focus:outline-none"
+              className="bg-[#050505] border border-[#222] text-white rounded p-1.5 w-full focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
             >
               <option value="">No Project</option>
               {projects.map(p => (
@@ -483,7 +484,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
             <select 
               value={uploadDept} 
               onChange={e => setUploadDept(e.target.value)}
-              className="bg-white border border-gray-200 rounded p-1.5 w-full focus:outline-none"
+              className="bg-[#050505] border border-[#222] text-white rounded p-1.5 w-full focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
             >
               {mockDepts.map(d => (
                 <option key={d} value={d}>{d}</option>
@@ -495,7 +496,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
             <select 
               value={uploadAccess} 
               onChange={e => setUploadAccess(e.target.value)}
-              className="bg-white border border-gray-200 rounded p-1.5 w-full focus:outline-none"
+              className="bg-[#050505] border border-[#222] text-white rounded p-1.5 w-full focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
             >
               <option value="public">Public</option>
               <option value="internal">Internal</option>
@@ -509,7 +510,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
               value={uploadTags} 
               onChange={e => setUploadTags(e.target.value)}
               placeholder="e.g. hr, contract, draft"
-              className="bg-white border border-gray-200 rounded p-1.5 w-full focus:outline-none"
+              className="bg-[#050505] border border-[#222] text-white rounded p-1.5 w-full focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
             />
           </div>
         </div>
@@ -523,12 +524,12 @@ export default function DocumentManager({ organizationId }: { organizationId: st
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               placeholder="Folder name..."
-              className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="bg-[#111] border border-[#222] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
             />
-            <button type="submit" className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-lg text-xs font-semibold">
+            <button type="submit" className="bg-gold-500 text-black hover:bg-gold-400 px-3 py-2 rounded-lg text-xs font-bold shadow-[0_0_10px_rgba(205,157,57,0.2)]">
               Create
             </button>
-            <button type="button" onClick={() => setShowFolderForm(false)} className="text-gray-400 hover:text-gray-600">
+            <button type="button" onClick={() => setShowFolderForm(false)} className="text-gray-500 hover:text-white">
               <X className="w-4 h-4" />
             </button>
           </form>
@@ -537,30 +538,30 @@ export default function DocumentManager({ organizationId }: { organizationId: st
         {/* Grid List View */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-2" />
+            <Loader2 className="w-8 h-8 text-gold-500 animate-spin mb-2" />
             <p className="text-xs text-gray-500 font-medium">Loading items...</p>
           </div>
         ) : currentFolders.length === 0 && currentDocs.length === 0 ? (
-          <div className="text-center py-16 bg-slate-50/50 border border-dashed border-gray-200 rounded-xl">
-            <Folder className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500 font-semibold">This folder is empty</p>
+          <div className="text-center py-16 bg-[#0a0a0a] border border-dashed border-[#222] rounded-xl">
+            <Folder className="w-10 h-10 text-gold-500/30 mx-auto mb-2" />
+            <p className="text-sm text-gray-400 font-semibold">This folder is empty</p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 border border-gray-150 rounded-xl overflow-hidden shadow-2xs">
+          <div className="divide-y divide-[#1a1a1a] border border-[#1a1a1a] rounded-xl overflow-hidden shadow-2xs">
             {/* List Folders first */}
             {currentFolders.map((folder) => (
               <div 
                 key={folder.id} 
-                className="p-3.5 flex justify-between items-center hover:bg-slate-50/60 group cursor-pointer"
+                className="p-3.5 flex justify-between items-center hover:bg-[#111]/60 group cursor-pointer"
                 onClick={() => handleFolderClick(folder)}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">
+                  <div className="w-9 h-9 bg-gold-500/10 text-gold-400 border border-gold-500/20 rounded-lg flex items-center justify-center">
                     <Folder className="w-5 h-5 fill-current" />
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{folder.name}</p>
-                    <span className="text-[10px] text-gray-400 font-medium">Directory Folder</span>
+                    <p className="text-sm font-bold text-white group-hover:text-gold-400 transition-colors">{folder.name}</p>
+                    <span className="text-[10px] text-gray-500 font-medium">Directory Folder</span>
                   </div>
                 </div>
                 <button
@@ -568,7 +569,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                     e.stopPropagation();
                     handleDeleteFolder(folder.id);
                   }}
-                  className="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50/50 transition duration-150 opacity-0 group-hover:opacity-100"
+                  className="text-gray-500 hover:text-red-400 p-2 rounded-lg hover:bg-red-500/10 transition duration-150 opacity-0 group-hover:opacity-100"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -582,18 +583,18 @@ export default function DocumentManager({ organizationId }: { organizationId: st
               return (
                 <div 
                   key={doc.id} 
-                  className={`p-3.5 flex justify-between items-center hover:bg-slate-50/60 cursor-pointer ${
-                    isSelected ? 'bg-blue-50/40 border-l-2 border-blue-600' : ''
+                  className={`p-3.5 flex justify-between items-center hover:bg-[#111]/60 cursor-pointer ${
+                    isSelected ? 'bg-gold-500/5 border-l-2 border-gold-500' : ''
                   }`}
                   onClick={() => setSelectedDoc(doc)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold text-xs">
+                    <div className="w-9 h-9 bg-gold-500/10 text-gold-400 border border-gold-500/20 rounded-lg flex items-center justify-center font-bold text-xs">
                       {extension}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-gray-800">{doc.filename}</p>
-                      <p className="text-[10px] text-gray-400 font-medium">
+                      <p className="text-sm font-bold text-white">{doc.filename}</p>
+                      <p className="text-[10px] text-gray-500 font-medium">
                         {(doc.size_bytes / 1024).toFixed(1)} KB • {doc.access_level.toUpperCase()} • {new Date(doc.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -604,7 +605,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                     {doc.tags && (
                       <div className="flex gap-1">
                         {doc.tags.split(",").slice(0, 2).map((tag, i) => (
-                          <span key={i} className="bg-slate-100 text-slate-600 text-[9px] px-2 py-0.5 rounded font-semibold border border-slate-200">
+                          <span key={i} className="bg-gold-500/10 text-gold-400 text-[9px] px-2 py-0.5 rounded font-semibold border border-gold-500/20">
                             {tag.trim()}
                           </span>
                         ))}
@@ -615,7 +616,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                       target="_blank"
                       rel="noreferrer"
                       onClick={e => e.stopPropagation()}
-                      className="text-gray-400 hover:text-blue-600 p-2 rounded hover:bg-blue-50/50 transition duration-150"
+                      className="text-gray-500 hover:text-gold-400 p-2 rounded hover:bg-gold-500/10 transition duration-150"
                     >
                       <Download className="w-4 h-4" />
                     </a>
@@ -629,36 +630,36 @@ export default function DocumentManager({ organizationId }: { organizationId: st
 
       {/* Selected File Details Slide-over Panel */}
       {selectedDoc && (
-        <aside className="w-80 bg-white border border-gray-150 rounded-xl p-5 shadow-sm space-y-6 animate-slide-left sticky top-24 shrink-0">
-          <div className="flex justify-between items-center pb-3 border-b border-gray-100">
-            <h3 className="font-bold text-gray-800 text-sm flex items-center gap-2">
-              <Info className="w-4 h-4 text-blue-600" />
+        <aside className="w-80 bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-5 shadow-2xl space-y-6 animate-slide-left sticky top-24 shrink-0">
+          <div className="flex justify-between items-center pb-3 border-b border-[#1a1a1a]">
+            <h3 className="font-bold text-white text-sm flex items-center gap-2">
+              <Info className="w-4 h-4 text-gold-400" />
               <span>File Inspector</span>
             </h3>
-            <button onClick={() => setSelectedDoc(null)} className="text-gray-400 hover:text-gray-600">
+            <button onClick={() => setSelectedDoc(null)} className="text-gray-500 hover:text-white">
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Details view Tab navigation */}
-          <div className="flex border-b border-gray-100 text-xs font-semibold text-gray-500">
+          <div className="flex border-b border-[#1a1a1a] text-xs font-semibold text-gray-500">
             <button 
               onClick={() => setActiveDetailsTab("metadata")}
-              className={`flex-1 pb-2 flex justify-center items-center gap-1 ${activeDetailsTab === "metadata" ? "border-b-2 border-blue-600 text-blue-600" : "hover:text-gray-700"}`}
+              className={`flex-1 pb-2 flex justify-center items-center gap-1 ${activeDetailsTab === "metadata" ? "border-b-2 border-gold-500 text-gold-400" : "hover:text-gold-200"}`}
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Details</span>
             </button>
             <button 
               onClick={() => setActiveDetailsTab("versions")}
-              className={`flex-1 pb-2 flex justify-center items-center gap-1 ${activeDetailsTab === "versions" ? "border-b-2 border-blue-600 text-blue-600" : "hover:text-gray-700"}`}
+              className={`flex-1 pb-2 flex justify-center items-center gap-1 ${activeDetailsTab === "versions" ? "border-b-2 border-gold-500 text-gold-400" : "hover:text-gold-200"}`}
             >
               <History className="w-3.5 h-3.5" />
               <span>History ({versions.length})</span>
             </button>
             <button 
               onClick={() => setActiveDetailsTab("share")}
-              className={`flex-1 pb-2 flex justify-center items-center gap-1 ${activeDetailsTab === "share" ? "border-b-2 border-blue-600 text-blue-600" : "hover:text-gray-700"}`}
+              className={`flex-1 pb-2 flex justify-center items-center gap-1 ${activeDetailsTab === "share" ? "border-b-2 border-gold-500 text-gold-400" : "hover:text-gold-200"}`}
             >
               <Share2 className="w-3.5 h-3.5" />
               <span>Sharing</span>
@@ -667,14 +668,14 @@ export default function DocumentManager({ organizationId }: { organizationId: st
 
           {/* VIEW: METADATA FORM */}
           {activeDetailsTab === "metadata" && (
-            <form onSubmit={handleUpdateMetadata} className="space-y-4 text-xs font-medium text-gray-600">
+            <form onSubmit={handleUpdateMetadata} className="space-y-4 text-xs font-medium text-gray-400">
               <div>
                 <label className="block text-gray-500 mb-1">FILE NAME</label>
                 <input 
                   type="text" 
                   value={editFilename} 
                   onChange={e => setEditFilename(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded p-2 w-full focus:ring-1 focus:ring-blue-500 focus:outline-none text-gray-800"
+                  className="bg-[#111] border border-[#222] rounded p-2 w-full focus:outline-none text-white focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                 />
               </div>
 
@@ -683,7 +684,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                 <select 
                   value={editProject} 
                   onChange={e => setEditProject(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded p-2 w-full focus:outline-none text-gray-800"
+                  className="bg-[#111] border border-[#222] rounded p-2 w-full focus:outline-none text-white focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                 >
                   <option value="">No Project</option>
                   {projects.map(p => (
@@ -697,7 +698,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                 <select 
                   value={editDept} 
                   onChange={e => setEditDept(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded p-2 w-full focus:outline-none text-gray-800"
+                  className="bg-[#111] border border-[#222] rounded p-2 w-full focus:outline-none text-white focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                 >
                   {mockDepts.map(d => (
                     <option key={d} value={d}>{d}</option>
@@ -710,7 +711,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                 <select 
                   value={editAccess} 
                   onChange={e => setEditAccess(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded p-2 w-full focus:outline-none text-gray-800"
+                  className="bg-[#111] border border-[#222] rounded p-2 w-full focus:outline-none text-white focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                 >
                   <option value="public">Public</option>
                   <option value="internal">Internal</option>
@@ -724,7 +725,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                   type="text" 
                   value={editTags} 
                   onChange={e => setEditTags(e.target.value)}
-                  className="bg-gray-50 border border-gray-200 rounded p-2 w-full focus:outline-none text-gray-800"
+                  className="bg-[#111] border border-[#222] rounded p-2 w-full focus:outline-none text-white focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                 />
               </div>
 
@@ -732,7 +733,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                 <button
                   type="button"
                   onClick={() => handleDeleteDoc(selectedDoc.id)}
-                  className="bg-red-50 hover:bg-red-100 text-red-600 font-semibold px-3 py-2 rounded-lg border border-red-100 transition duration-150 flex items-center gap-1"
+                  className="bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold px-3 py-2 rounded-lg border border-red-500/20 transition duration-150 flex items-center gap-1"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>Delete</span>
@@ -740,7 +741,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                 <button
                   type="submit"
                   disabled={isUpdatingMeta}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-1 disabled:opacity-50 transition duration-150"
+                  className="bg-gradient-to-r from-gold-600 to-gold-500 text-black hover:from-gold-500 hover:to-gold-400 font-bold px-4 py-2 rounded-lg flex items-center gap-1 disabled:opacity-50 transition duration-150 shadow-[0_0_15px_rgba(205,157,57,0.3)]"
                 >
                   {isUpdatingMeta ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                   <span>Save Info</span>
@@ -754,7 +755,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
             <div className="space-y-4">
               {/* Upload new version file button */}
               <div>
-                <label className={`cursor-pointer w-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${isUploadingVersion ? 'opacity-50' : ''}`}>
+                <label className={`cursor-pointer w-full bg-[#111] hover:bg-[#151515] border border-[#222] text-gold-400 hover:text-gold-300 py-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition ${isUploadingVersion ? 'opacity-50' : ''}`}>
                   {isUploadingVersion ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
                   <span>{isUploadingVersion ? 'Uploading...' : 'Upload New Version'}</span>
                   <input type="file" className="hidden" onChange={handleVersionUpload} disabled={isUploadingVersion} />
@@ -764,20 +765,20 @@ export default function DocumentManager({ organizationId }: { organizationId: st
               {/* Version History List */}
               <div className="space-y-3 max-h-72 overflow-y-auto scrollbar-thin">
                 {versions.map((ver) => (
-                  <div key={ver.id} className="p-3 bg-slate-50 border border-gray-150 rounded-lg text-xs flex flex-col gap-1 hover:border-gray-300 transition-colors">
-                    <div className="flex justify-between items-center font-bold text-gray-800">
+                  <div key={ver.id} className="p-3 bg-[#111] border border-[#222] rounded-lg text-xs flex flex-col gap-1 hover:border-gray-600 transition-colors">
+                    <div className="flex justify-between items-center font-bold text-white">
                       <span>Version {ver.version_number}</span>
                       {selectedDoc.storage_key === ver.storage_key && (
-                        <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full font-semibold">Active</span>
+                        <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full font-semibold">Active</span>
                       )}
                     </div>
-                    <span className="text-[10px] text-gray-400">Size: {(ver.size_bytes / 1024).toFixed(1)} KB</span>
-                    <span className="text-[10px] text-gray-400">Uploaded: {new Date(ver.created_at).toLocaleString()}</span>
+                    <span className="text-[10px] text-gray-500">Size: {(ver.size_bytes / 1024).toFixed(1)} KB</span>
+                    <span className="text-[10px] text-gray-500">Uploaded: {new Date(ver.created_at).toLocaleString()}</span>
                     
                     {selectedDoc.storage_key !== ver.storage_key && (
                       <button
                         onClick={() => handleRestoreVersion(ver.id)}
-                        className="text-blue-600 hover:underline font-bold self-start mt-2 text-[10px] flex items-center gap-0.5"
+                        className="text-gold-400 hover:text-gold-300 hover:underline font-bold self-start mt-2 text-[10px] flex items-center gap-0.5"
                       >
                         Restore Version
                       </button>
@@ -790,10 +791,10 @@ export default function DocumentManager({ organizationId }: { organizationId: st
 
           {/* VIEW: SHARING CONTROLS */}
           {activeDetailsTab === "share" && (
-            <div className="space-y-4 text-xs font-medium text-gray-600">
-              <div className="bg-slate-50 border border-gray-150 rounded-lg p-3 text-[11px] text-slate-500 leading-relaxed flex gap-2">
-                <Globe className="w-4 h-4 shrink-0 text-slate-400" />
-                <span>Sharing grants specific permissions to team members. Shared links require Clerk validation to download.</span>
+            <div className="space-y-4 text-xs font-medium text-gray-400">
+              <div className="bg-[#111] border border-[#222] rounded-lg p-3 text-[11px] text-gray-400 leading-relaxed flex gap-2">
+                <Globe className="w-4 h-4 shrink-0 text-gold-500" />
+                <span>Sharing grants specific permissions to team members. Shared links require validation to download.</span>
               </div>
 
               <form onSubmit={handleShare} className="space-y-3">
@@ -804,8 +805,8 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                     required
                     value={shareEmail}
                     onChange={e => setShareEmail(e.target.value)}
-                    placeholder="e.g. rahul@clerk.dev"
-                    className="bg-gray-50 border border-gray-200 rounded p-2.5 w-full focus:ring-1 focus:ring-blue-500 focus:outline-none text-gray-800"
+                    placeholder="e.g. rahul@nexora.dev"
+                    className="bg-[#111] border border-[#222] rounded p-2.5 w-full focus:ring-1 focus:ring-gold-500/50 focus:outline-none text-white focus:border-gold-500"
                   />
                 </div>
 
@@ -814,7 +815,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                   <select
                     value={shareRole}
                     onChange={e => setShareRole(e.target.value)}
-                    className="bg-gray-50 border border-gray-200 rounded p-2.5 w-full focus:outline-none text-gray-800"
+                    className="bg-[#111] border border-[#222] rounded p-2.5 w-full focus:outline-none text-white focus:border-gold-500"
                   >
                     <option value="read">Read Only</option>
                     <option value="write">Read & Write</option>
@@ -822,14 +823,14 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                 </div>
 
                 {shareSuccess && (
-                  <div className="bg-emerald-50 border border-emerald-100 rounded text-emerald-700 p-2 text-center text-[10px] font-semibold animate-fade-in">
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded text-emerald-400 p-2 text-center text-[10px] font-semibold animate-fade-in">
                     Document shared successfully!
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-sm shadow-blue-600/25 transition duration-200"
+                  className="w-full bg-gradient-to-r from-gold-600 to-gold-500 text-black hover:from-gold-500 hover:to-gold-400 font-bold py-2.5 px-4 rounded-lg shadow-[0_0_15px_rgba(205,157,57,0.3)] transition duration-200"
                 >
                   Share Document
                 </button>

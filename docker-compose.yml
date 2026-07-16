@@ -56,7 +56,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://workspace_user:mysecretpassword@db:5432/workspace_ai
+      - DATABASE_URL=${DATABASE_URL}
       - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID:-nexora-77b99}
       - GROQ_API_KEY=${GROQ_API_KEY}
       - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
@@ -78,6 +78,7 @@ services:
       - NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:-nexora-77b99.firebasestorage.app}
       - NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:-692490917095}
       - NEXT_PUBLIC_FIREBASE_APP_ID=${NEXT_PUBLIC_FIREBASE_APP_ID:-1:692490917095:web:9d673d394965da3d447e42}
+      - BACKEND_URL=http://backend:8000
     depends_on:
       - backend
     restart: unless-stopped

@@ -21,7 +21,7 @@ export default function SignInPage() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError("Failed to sign in. Please verify your email and password.");
     } finally {
@@ -36,7 +36,7 @@ export default function SignInPage() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError("Failed to sign in with Google.");
     } finally {
@@ -137,7 +137,7 @@ export default function SignInPage() {
         {/* Sign Up Redirect */}
         <div className="text-center pt-2">
           <p className="text-xs text-gray-400">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/sign-up" className="text-gold-500 hover:text-gold-400 font-bold transition-colors">
               Create an account
             </Link>

@@ -1,6 +1,6 @@
 "use client";
 
-/* eslint-disable @typescript-eslint/no-explicit-any, react/no-unescaped-entities */
+/* eslint-disable @typescript-eslint/no-explicit-any, react/no-unescaped-entities, @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
@@ -100,7 +100,7 @@ export default function DashboardApp() {
       const token = await getToken();
       
       // Get projects count
-      const projRes = await fetch(`http://localhost:8000/api/v1/projects/org/${organizationId}`, {
+      const projRes = await fetch(`/api/v1/projects/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (projRes.ok) {
@@ -344,6 +344,11 @@ export default function DashboardApp() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`
       };
+
+      if (isStatelessMode && statelessKey) {
+        headers["Authorization"] = `Bearer ${statelessKey}`;
+        headers["X-AI-Provider"] = chatProvider;
+      }
 
       const res = await fetch(`/api/v1/ai/chat?organization_id=${organizationId}`, {
         method: "POST",
@@ -648,29 +653,28 @@ export default function DashboardApp() {
                       </div>
                     </div>
                   )}
-
                   {/* Matching Documents */}
                   {searchResults.documents.length > 0 && (
                     <div className="space-y-3">
                       <h3 className="font-bold text-xs text-gray-400 uppercase tracking-wider">Matching Documents ({searchResults.documents.length})</h3>
-                      <div className="bg-white border border-gray-150 rounded-xl divide-y divide-gray-100 overflow-hidden shadow-2xs">
+                      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl divide-y divide-[#1a1a1a] overflow-hidden shadow-2xl">
                         {searchResults.documents.map(doc => {
                           const extension = doc.filename.split('.').pop()?.toUpperCase() || "DOC";
                           return (
                             <div 
                               key={doc.id} 
                               onClick={() => {
-                                setActiveTab("documents");
+                                  setActiveTab("documents");
                               }}
-                              className="p-3.5 flex justify-between items-center hover:bg-slate-50/50 cursor-pointer"
+                              className="p-3.5 flex justify-between items-center hover:bg-[#111]/50 cursor-pointer text-white"
                             >
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center font-bold text-[10px]">
+                                <div className="w-8 h-8 bg-gold-500/10 text-gold-400 border border-gold-500/20 rounded-lg flex items-center justify-center font-bold text-[10px]">
                                   {extension}
                                 </div>
                                 <div>
-                                  <span className="text-sm font-bold text-gray-800 block">{doc.filename}</span>
-                                  <span className="text-[10px] text-gray-400 font-medium">
+                                  <span className="text-sm font-bold text-white block">{doc.filename}</span>
+                                  <span className="text-[10px] text-gray-500 font-medium">
                                     {(doc.size_bytes / 1024).toFixed(1)} KB • {doc.access_level.toUpperCase()} • Dept: {doc.department_id || "None"}
                                   </span>
                                 </div>
@@ -678,7 +682,7 @@ export default function DashboardApp() {
 
                               <div className="flex gap-2">
                                 {doc.tags && doc.tags.split(",").map((t: string, idx: number) => (
-                                  <span key={idx} className="bg-slate-100 text-slate-600 text-[9px] px-2 py-0.5 rounded border border-slate-200 font-semibold">
+                                  <span key={idx} className="bg-gold-500/10 text-gold-400 text-[9px] px-2 py-0.5 rounded border border-gold-500/20 font-semibold">
                                     {t.trim()}
                                   </span>
                                 ))}
@@ -696,10 +700,10 @@ export default function DashboardApp() {
 
           {/* TAB: AI ASSISTANT */}
           {activeTab === "ai" && (
-            <div className="animate-fade-in h-[calc(100vh-180px)] flex flex-col bg-white border border-gray-150 rounded-xl overflow-hidden shadow-sm">
-              <div className="bg-slate-900 text-white p-4 border-b border-slate-800 flex flex-wrap gap-4 items-center justify-between">
+            <div className="animate-fade-in h-[calc(100vh-180px)] flex flex-col bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl overflow-hidden shadow-2xl">
+              <div className="bg-[#111] text-white p-4 border-b border-[#222] flex flex-wrap gap-4 items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-500/25 flex items-center justify-center border border-indigo-400/20 text-indigo-300">
+                  <div className="w-8 h-8 rounded-lg bg-gold-500/10 border border-gold-500/20 text-gold-400 flex items-center justify-center">
                     <MessageSquareCode className="w-5 h-5" />
                   </div>
                   <div>
@@ -716,7 +720,7 @@ export default function DashboardApp() {
                   <select 
                     value={chatProvider}
                     onChange={(e) => setChatProvider(e.target.value)}
-                    className="bg-slate-800 text-white border border-slate-700 text-xs font-semibold rounded-lg p-2 focus:outline-none"
+                    className="bg-[#050505] text-white border border-[#222] text-xs font-semibold rounded-lg p-2 focus:outline-none"
                   >
                     {providersMetadata.map(p => (
                       <option key={p.id} value={p.id}>{p.name}</option>
@@ -726,20 +730,20 @@ export default function DashboardApp() {
                   <select 
                     value={chatModel}
                     onChange={(e) => setChatModel(e.target.value)}
-                    className="bg-slate-800 text-white border border-slate-700 text-xs font-semibold rounded-lg p-2 focus:outline-none"
+                    className="bg-[#050505] text-white border border-[#222] text-xs font-semibold rounded-lg p-2 focus:outline-none"
                   >
                     {providersMetadata.find(p => p.id === chatProvider)?.models.map((m: string) => (
                       <option key={m} value={m}>{m}</option>
                     ))}
                   </select>
 
-                  <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                  <div className="flex items-center gap-2 bg-[#050505] border border-[#222] rounded-lg p-2 text-xs text-white">
                     <input 
                       type="checkbox"
                       id="statelessToggle"
                       checked={isStatelessMode}
                       onChange={(e) => setIsStatelessMode(e.target.checked)}
-                      className="rounded accent-blue-500 focus:ring-0"
+                      className="rounded accent-gold-500 focus:ring-0"
                     />
                     <label htmlFor="statelessToggle" className="cursor-pointer font-semibold">Custom Key</label>
                   </div>
@@ -750,31 +754,31 @@ export default function DashboardApp() {
                       placeholder="Bearer API Key..."
                       value={statelessKey}
                       onChange={(e) => setStatelessKey(e.target.value)}
-                      className="bg-slate-800 text-white border border-slate-700 text-xs rounded-lg p-2 placeholder-slate-500 focus:outline-none w-32"
+                      className="bg-[#050505] text-white border border-[#222] text-xs rounded-lg p-2 placeholder-slate-600 focus:outline-none w-32"
                     />
                   )}
                 </div>
               </div>
 
               {/* Chat messages layout */}
-              <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/50">
+              <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-[#050505]">
                 {chatMessages.map((msg, index) => {
                   const isAI = msg.role === "ai";
                   return (
                     <div key={index} className={`flex gap-3 ${isAI ? "max-w-xl" : "max-w-xl ml-auto justify-end"}`}>
                       {isAI && (
-                        <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">AI</div>
+                        <div className="w-8 h-8 rounded-lg bg-gold-500 text-black flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">AI</div>
                       )}
                       <div className={`p-4 rounded-xl text-sm leading-relaxed shadow-xs ${
                         isAI 
-                          ? "bg-white border border-gray-150 text-gray-800" 
-                          : "bg-blue-600 text-white"
+                          ? "bg-[#111] border border-[#222] text-white" 
+                          : "bg-gold-500/10 border border-gold-500/20 text-gold-200"
                       }`}>
                         <p>{msg.content}</p>
                         
                         {isAI && msg.provider !== "system" && msg.provider !== "error" && (
-                          <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-3 text-[10px] text-gray-400 font-semibold">
-                            <span className="bg-slate-100 px-2 py-0.5 rounded uppercase">{msg.provider}</span>
+                          <div className="mt-3 pt-2 border-t border-[#222] flex items-center gap-3 text-[10px] text-gray-500 font-semibold">
+                            <span className="bg-[#050505] text-gold-400 border border-[#222] px-2 py-0.5 rounded uppercase">{msg.provider}</span>
                             <span>Model: {msg.model}</span>
                             {msg.latency && <span>{msg.latency} ms</span>}
                             {msg.tokens && <span>{msg.tokens} tokens</span>}
@@ -782,7 +786,7 @@ export default function DashboardApp() {
                         )}
                       </div>
                       {!isAI && (
-                        <div className="w-8 h-8 rounded-lg bg-blue-700 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">U</div>
+                        <div className="w-8 h-8 rounded-lg bg-[#222] border border-[#333] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">U</div>
                       )}
                     </div>
                   );
@@ -790,7 +794,7 @@ export default function DashboardApp() {
               </div>
 
               {/* Input section */}
-              <div className="p-4 bg-white border-t border-gray-100 flex gap-3 items-center">
+              <div className="p-4 bg-[#0a0a0a] border-t border-[#1a1a1a] flex gap-3 items-center">
                 <input
                   type="text"
                   value={chatInput}
@@ -798,12 +802,12 @@ export default function DashboardApp() {
                   onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
                   disabled={isChatSending}
                   placeholder="Ask a question about your enterprise documents..."
-                  className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all duration-200"
+                  className="flex-1 bg-[#111] border border-[#222] text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500 transition-all duration-200"
                 />
                 <button 
                   onClick={handleSendChatMessage}
                   disabled={isChatSending}
-                  className="bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-lg shadow-sm shadow-blue-600/25 transition-all duration-200 active:scale-95 disabled:opacity-50"
+                  className="bg-gradient-to-r from-gold-600 to-gold-500 hover:from-gold-500 hover:to-gold-400 text-black font-bold p-3.5 rounded-lg shadow-[0_0_15px_rgba(205,157,57,0.3)] transition-all duration-200 active:scale-95 disabled:opacity-50"
                 >
                   {isChatSending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -819,12 +823,12 @@ export default function DashboardApp() {
           {activeTab === "audit" && (
             <div className="animate-fade-in space-y-6">
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Immutable Audit Logs</h1>
-                <p className="text-sm text-gray-500">Tamper-evident record of organizational transactions and changes.</p>
+                <h1 className="text-xl font-extrabold text-white">Immutable Audit Logs</h1>
+                <p className="text-sm text-gray-400 font-medium">Tamper-evident record of organizational transactions and changes.</p>
               </div>
-              <div className="bg-white border border-gray-150 rounded-xl overflow-hidden shadow-sm">
-                <table className="min-w-full divide-y divide-gray-100 text-left">
-                  <thead className="bg-gray-50 text-xs font-bold text-gray-500 uppercase tracking-wider">
+              <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl overflow-hidden shadow-2xl">
+                <table className="min-w-full divide-y divide-[#1a1a1a] text-left">
+                  <thead className="bg-[#111] text-xs font-bold text-gray-400 uppercase tracking-wider">
                     <tr>
                       <th className="px-6 py-4">User</th>
                       <th className="px-6 py-4">Action</th>
@@ -833,16 +837,16 @@ export default function DashboardApp() {
                       <th className="px-6 py-4 text-right">Blockchain Hash</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
+                  <tbody className="divide-y divide-[#1a1a1a] text-sm text-gray-300">
                     {apiLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-gray-50/50 transition-colors duration-150">
-                        <td className="px-6 py-4 font-semibold text-gray-900">{log.user}</td>
+                      <tr key={log.id} className="hover:bg-[#111]/50 transition-colors duration-150">
+                        <td className="px-6 py-4 font-semibold text-white">{log.user}</td>
                         <td className="px-6 py-4">{log.action}</td>
-                        <td className="px-6 py-4 text-gray-500 font-medium">{log.resource}</td>
-                        <td className="px-6 py-4 text-gray-400 font-semibold">{log.time}</td>
+                        <td className="px-6 py-4 text-gray-400 font-medium">{log.resource}</td>
+                        <td className="px-6 py-4 text-gray-500 font-semibold">{log.time}</td>
                         <td className="px-6 py-4 text-right">
-                          <span className="font-mono text-xs bg-slate-50 text-slate-400 px-2.5 py-1 rounded border border-slate-100 inline-flex items-center gap-1 shadow-2xs">
-                            <Lock className="w-3 h-3 text-slate-400" />
+                          <span className="font-mono text-xs bg-[#111] text-gray-400 px-2.5 py-1 rounded border border-[#222] inline-flex items-center gap-1 shadow-2xs">
+                            <Lock className="w-3 h-3 text-gold-500" />
                             {log.hash}
                           </span>
                         </td>
@@ -854,19 +858,19 @@ export default function DashboardApp() {
             </div>
           )}
 
-          {/* TAB: SETTINGS (PRO / AI GATEWAY CONFIG) */}
+                    {/* TAB: SETTINGS (PRO / AI GATEWAY CONFIG) */}
           {activeTab === "settings" && (
             <div className="animate-fade-in space-y-8">
               <div>
-                <h1 className="text-xl font-bold text-gray-800">AI Gateway Settings</h1>
-                <p className="text-sm text-gray-500 font-medium">Configure credentials and defaults for your Bring Your Own Key (BYOK) providers.</p>
+                <h1 className="text-xl font-extrabold text-white">AI Gateway Settings</h1>
+                <p className="text-sm text-gray-400 font-medium">Configure credentials and defaults for your Bring Your Own Key (BYOK) providers.</p>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Configuration form card */}
-                <div className="lg:col-span-2 bg-white border border-gray-150 p-6 rounded-xl shadow-sm space-y-6">
-                  <h2 className="text-base font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
-                    <Key className="w-5 h-5 text-blue-600" />
+                <div className="lg:col-span-2 bg-[#0a0a0a] border border-[#1a1a1a] p-6 rounded-xl shadow-2xl space-y-6">
+                  <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-[#1a1a1a] pb-3">
+                    <Key className="w-5 h-5 text-gold-400" />
                     <span>Provider Credentials Manager</span>
                   </h2>
 
@@ -876,7 +880,7 @@ export default function DashboardApp() {
                       <select
                         value={settingsProvider}
                         onChange={(e) => setSettingsProvider(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 font-medium focus:outline-none"
+                        className="w-full bg-[#111] border border-[#222] rounded-lg p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                       >
                         {providersMetadata.map(p => (
                           <option key={p.id} value={p.id}>{p.name}</option>
@@ -889,7 +893,7 @@ export default function DashboardApp() {
                       <select
                         value={settingsModel}
                         onChange={(e) => setSettingsModel(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 font-medium focus:outline-none"
+                        className="w-full bg-[#111] border border-[#222] rounded-lg p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                       >
                         {providersMetadata.find(p => p.id === settingsProvider)?.models.map((m: string) => (
                           <option key={m} value={m}>{m}</option>
@@ -904,7 +908,7 @@ export default function DashboardApp() {
                         placeholder="Enter API key"
                         value={settingsSecretKey}
                         onChange={(e) => setSettingsSecretKey(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                        className="w-full bg-[#111] border border-[#222] rounded-lg p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                       />
                     </div>
 
@@ -915,7 +919,7 @@ export default function DashboardApp() {
                         placeholder="e.g. https://api.groq.com/openai/v1"
                         value={settingsBaseUrl}
                         onChange={(e) => setSettingsBaseUrl(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none"
+                        className="w-full bg-[#111] border border-[#222] rounded-lg p-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                       />
                     </div>
 
@@ -928,7 +932,7 @@ export default function DashboardApp() {
                         step="0.1"
                         value={settingsTemp}
                         onChange={(e) => setSettingsTemp(parseFloat(e.target.value))}
-                        className="w-full accent-blue-600 mt-2"
+                        className="w-full accent-gold-500 mt-2"
                       />
                     </div>
 
@@ -938,17 +942,16 @@ export default function DashboardApp() {
                         type="number"
                         value={settingsMaxTokens}
                         onChange={(e) => setSettingsMaxTokens(parseInt(e.target.value) || 2048)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none"
+                        className="w-full bg-[#111] border border-[#222] rounded-lg p-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-gold-500/50 focus:border-gold-500"
                       />
                     </div>
                   </div>
 
-                  {/* Actions buttons */}
-                  <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-100 justify-end">
+                  <div className="flex flex-wrap gap-4 pt-4 border-t border-[#1a1a1a] justify-end">
                     <button
                       onClick={handleTestConnection}
                       disabled={isTestingConnection || !settingsSecretKey}
-                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-lg text-xs flex items-center gap-2 transition duration-200 active:scale-95 disabled:opacity-50"
+                      className="border border-[#222] hover:bg-[#111] text-gray-400 hover:text-white font-bold px-5 py-3 rounded-lg text-xs flex items-center gap-2 transition duration-200 active:scale-95 disabled:opacity-50"
                     >
                       {isTestingConnection ? (
                         <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
@@ -961,10 +964,10 @@ export default function DashboardApp() {
                     <button
                       onClick={handleSaveCredentials}
                       disabled={isSavingCreds || !settingsSecretKey}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg text-xs flex items-center gap-2 shadow-sm transition duration-200 active:scale-95 disabled:opacity-50"
+                      className="bg-gradient-to-r from-gold-600 to-gold-500 text-black hover:from-gold-500 hover:to-gold-400 font-bold px-6 py-3 rounded-lg text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(205,157,57,0.3)] transition duration-200 active:scale-95 disabled:opacity-50"
                     >
                       {isSavingCreds ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                        <Loader2 className="w-4 h-4 animate-spin text-black" />
                       ) : (
                         <CheckCircle2 className="w-4 h-4" />
                       )}
@@ -976,8 +979,8 @@ export default function DashboardApp() {
                   {testResponse && (
                     <div className={`p-4 rounded-lg border text-xs font-medium ${
                       testResponse.status === "success" 
-                        ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
-                        : "bg-red-50 border-red-200 text-red-700"
+                        ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" 
+                        : "bg-red-500/10 border-red-500/20 text-red-400"
                     }`}>
                       <p className="font-bold mb-1">Result: {testResponse.status.toUpperCase()}</p>
                       <p>{testResponse.message}</p>
@@ -987,25 +990,25 @@ export default function DashboardApp() {
                 </div>
 
                 {/* Info side pane */}
-                <div className="bg-gradient-to-tr from-slate-900 to-indigo-950 text-white border border-indigo-950 p-6 rounded-xl shadow-lg space-y-6">
-                  <h2 className="text-base font-bold text-indigo-100 flex items-center gap-2 border-b border-indigo-900/40 pb-3">
-                    <Database className="w-5 h-5 text-indigo-400" />
+                <div className="bg-gradient-to-tr from-[#0a0a0a] to-[#1a1a1a] text-white border border-[#222] p-6 rounded-xl shadow-lg space-y-6">
+                  <h2 className="text-base font-bold text-gray-200 flex items-center gap-2 border-b border-[#333] pb-3">
+                    <Database className="w-5 h-5 text-gold-500" />
                     <span>Configured Gateway Providers</span>
                   </h2>
 
                   <div className="space-y-4">
                     {isMetadataLoading ? (
-                      <Loader2 className="w-6 h-6 animate-spin text-indigo-400 mx-auto" />
+                      <Loader2 className="w-6 h-6 animate-spin text-gold-500 mx-auto" />
                     ) : orgCredentials.length === 0 ? (
-                      <p className="text-xs text-indigo-300/80 leading-relaxed font-medium">
+                      <p className="text-xs text-gray-400 leading-relaxed font-medium">
                         No stateful database configurations configured yet. All chat completions will run on stateless header mode or fallback to default settings.
                       </p>
                     ) : (
                       orgCredentials.map(cred => (
-                        <div key={cred.id} className="bg-slate-950/40 border border-slate-900/60 p-3 rounded-lg flex items-center justify-between">
+                        <div key={cred.id} className="bg-[#111] border border-[#222] p-3 rounded-lg flex items-center justify-between">
                           <div>
                             <span className="text-xs font-bold text-white block uppercase tracking-wider">{cred.provider}</span>
-                            <span className="text-[10px] text-slate-400">Default Model: {cred.model}</span>
+                            <span className="text-[10px] text-gray-500">Default Model: {cred.model}</span>
                           </div>
                           <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded">
                             Configured
@@ -1015,9 +1018,9 @@ export default function DashboardApp() {
                     )}
                   </div>
 
-                  <div className="pt-4 border-t border-indigo-900/40 space-y-3">
-                    <div className="flex gap-2.5 text-xs text-indigo-200 leading-relaxed">
-                      <Info className="w-4 h-4 shrink-0 text-indigo-400" />
+                  <div className="pt-4 border-t border-[#333] space-y-3">
+                    <div className="flex gap-2.5 text-xs text-gray-400 leading-relaxed">
+                      <Info className="w-4 h-4 shrink-0 text-gold-500" />
                       <span>Saved credentials are encrypted at rest using symmetric key cryptography and are never leaked to the client interface.</span>
                     </div>
                   </div>
@@ -1028,9 +1031,9 @@ export default function DashboardApp() {
 
           {/* Fallback placeholers for unfinished tabs */}
           {["members", "departments", "analytics", "notifications"].includes(activeTab) && (
-            <div className="bg-white border border-gray-100 rounded-xl p-12 text-center shadow-sm animate-fade-in">
-              <h2 className="text-lg font-bold text-gray-800 capitalize mb-2">{activeTab} Section</h2>
-              <p className="text-sm text-gray-500 max-w-sm mx-auto">
+            <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-12 text-center shadow-2xl animate-fade-in text-white">
+              <h2 className="text-lg font-bold text-white capitalize mb-2">{activeTab} Section</h2>
+              <p className="text-sm text-gray-400 max-w-sm mx-auto">
                 This feature is planned for a later phase of the Roadmap and is under active construction.
               </p>
             </div>

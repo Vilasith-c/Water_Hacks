@@ -101,7 +101,7 @@ export default function Home() {
       const token = await getToken();
       
       // Get projects count
-      const projRes = await fetch(`http://localhost:8000/api/v1/projects/org/${organizationId}`, {
+      const projRes = await fetch(`/api/v1/projects/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (projRes.ok) {
@@ -110,7 +110,7 @@ export default function Home() {
       }
 
       // Get documents count
-      const docsRes = await fetch(`http://127.0.0.1:8000/api/v1/documents/org/${organizationId}`, {
+      const docsRes = await fetch(`/api/v1/documents/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (docsRes.ok) {
@@ -119,7 +119,7 @@ export default function Home() {
       }
 
       // Get folders count
-      const foldersRes = await fetch(`http://127.0.0.1:8000/api/v1/documents/folders/${organizationId}`, {
+      const foldersRes = await fetch(`/api/v1/documents/folders/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (foldersRes.ok) {
@@ -141,7 +141,7 @@ export default function Home() {
       const token = await getToken();
       
       // Fetch metadata providers list
-      const provsRes = await fetch("http://127.0.0.1:8000/api/v1/ai/providers", {
+      const provsRes = await fetch("/api/v1/ai/providers", {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (provsRes.ok) {
@@ -150,7 +150,7 @@ export default function Home() {
       }
 
       // Fetch saved credentials
-      const credsRes = await fetch(`http://127.0.0.1:8000/api/v1/ai/credentials/org/${organizationId}`, {
+      const credsRes = await fetch(`/api/v1/ai/credentials/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (credsRes.ok) {
@@ -175,7 +175,7 @@ export default function Home() {
     setIsSearching(true);
     try {
       const token = await getToken();
-      let url = `http://127.0.0.1:8000/api/v1/search?organization_id=${organizationId}`;
+      let url = `/api/v1/search?organization_id=${organizationId}`;
       if (searchQuery) url += `&q=${encodeURIComponent(searchQuery)}`;
       if (searchFilterDept) url += `&department_id=${encodeURIComponent(searchFilterDept)}`;
       if (searchFilterAccess) url += `&access_level=${encodeURIComponent(searchFilterAccess)}`;
@@ -196,42 +196,38 @@ export default function Home() {
     }
   };
 
-  // Trigger search when query or filters change
+  // Fetch audit logs from database
+  const fetchAuditLogs = async () => {
+    try {
+      const token = await getToken();
+      const res = await fetch("/api/v1/audit/logs", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const formattedLogs = data.map((log: any) => ({
+          id: log.id,
+          user: log.user_name || "System",
+          action: log.action,
+          resource: log.resource,
+          time: new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          hash: log.current_hash ? `${log.current_hash.slice(0, 6)}...${log.current_hash.slice(-4)}` : "None"
+        }));
+        setApiLogs(formattedLogs);
+      }
+    } catch (err) {
+      console.error("Failed to fetch audit logs", err);
+    }
+  };
+
+  // Trigger search or audit logs fetch on tab / query changes
   useEffect(() => {
     if (activeTab === "search") {
       executeSearch();
+    } else if (activeTab === "audit" || activeTab === "dashboard") {
+      fetchAuditLogs();
     }
   }, [searchQuery, searchFilterDept, searchFilterAccess, activeTab, organizationId]);
-
-  // Mock initial logs for audit trail
-  useEffect(() => {
-    setApiLogs([
-      {
-        id: "1",
-        user: "John Doe",
-        action: "Upload Document",
-        resource: "Employee_Handbook.pdf",
-        time: "09:21 AM",
-        hash: "a4f2bc...de39"
-      },
-      {
-        id: "2",
-        user: "Sarah Jenkins",
-        action: "Approve Leave Workflow",
-        resource: "Leave_Policy_v2.docx",
-        time: "09:24 AM",
-        hash: "e903bc...48a2"
-      },
-      {
-        id: "3",
-        user: "System",
-        action: "Permission Audit",
-        resource: "Access Rules Engine",
-        time: "10:00 AM",
-        hash: "ff83a2...de77"
-      }
-    ]);
-  }, []);
 
   // Update default models when provider changes in settings form
   useEffect(() => {
@@ -259,7 +255,7 @@ export default function Home() {
     setTestResponse(null);
     try {
       const token = await getToken();
-      const res = await fetch("http://127.0.0.1:8000/api/v1/ai/test", {
+      const res = await fetch("/api/v1/ai/test", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -294,7 +290,7 @@ export default function Home() {
     setIsSavingCreds(true);
     try {
       const token = await getToken();
-      const res = await fetch("http://127.0.0.1:8000/api/v1/ai/credentials", {
+      const res = await fetch("/api/v1/ai/credentials", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -346,7 +342,7 @@ export default function Home() {
         Authorization: `Bearer ${token}`
       };
 
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/ai/chat?organization_id=${organizationId}`, {
+      const res = await fetch(`/api/v1/ai/chat?organization_id=${organizationId}`, {
         method: "POST",
         headers: headers,
         body: JSON.stringify({

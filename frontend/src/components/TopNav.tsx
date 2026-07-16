@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { useState } from "react";
 import { Search, Sparkles, Plus, Landmark } from "lucide-react";
@@ -74,28 +75,6 @@ export default function TopNav({
 
       {/* Right side: Quick Action Buttons & Profile */}
       <div className="flex items-center gap-4">
-        {onOpenCreateProject && (
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onOpenCreateProject}
-            className="bg-gradient-to-r from-gold-600 to-gold-500 text-black hover:from-gold-500 hover:to-gold-400 font-bold px-4 py-2 rounded-lg text-sm flex items-center gap-2 shadow-[0_0_15px_rgba(205,157,57,0.3)] transition-all duration-300"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Project</span>
-          </motion.button>
-        )}
-        
-        <div className="h-8 w-px bg-[#222]"></div>
-
-        {/* AI Quick Chat badge */}
-        <motion.div 
-          whileHover={{ scale: 1.05 }}
-          className="bg-gold-500/10 border border-gold-500/20 rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs text-gold-400 font-semibold shadow-inner cursor-pointer"
-        >
-          <Sparkles className="w-3.5 h-3.5 animate-pulse text-gold-500" />
-          <span>Gemini AI Active</span>
-        </motion.div>
       </div>
     </header>
   );

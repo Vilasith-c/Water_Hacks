@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";

@@ -21,7 +21,7 @@ export default function SignUpPage() {
     try {
       await createUserWithEmailAndPassword(auth, email, password);
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError("Failed to create account. Email may already be in use.");
     } finally {
@@ -36,7 +36,7 @@ export default function SignUpPage() {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
       router.push("/");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError("Failed to sign up with Google.");
     } finally {
@@ -54,7 +54,7 @@ export default function SignUpPage() {
             <Sparkles className="w-6 h-6" />
           </div>
           <h1 className="text-2xl font-extrabold text-white">Create Account</h1>
-          <p className="text-sm text-gray-400">Join your team's secure enterprise workspace.</p>
+          <p className="text-sm text-gray-400">Join your team&apos;s secure enterprise workspace.</p>
         </div>
 
         {/* Error message */}

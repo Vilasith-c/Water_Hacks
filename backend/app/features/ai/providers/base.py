@@ -18,6 +18,9 @@ class BaseProvider(ABC):
         pass
 
     def _post_json(self, url: str, headers: dict, data: dict, timeout: int = 30) -> dict:
+        headers = headers.copy()
+        if "User-Agent" not in headers:
+            headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         req = urllib.request.Request(
             url,
             data=json.dumps(data).encode("utf-8"),

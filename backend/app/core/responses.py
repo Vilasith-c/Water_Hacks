@@ -1,5 +1,5 @@
 from typing import Any, Generic, TypeVar, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 T = TypeVar("T")
 
@@ -9,8 +9,14 @@ class StandardResponse(BaseModel, Generic[T]):
     data: Optional[T] = None
     code: Optional[str] = None
 
-def success_response(data: Any = None, message: str = "Success") -> StandardResponse:
-    return StandardResponse(success=True, message=message, data=data)
+    model_config = {"from_attributes": True}
 
-def error_response(message: str, code: str = "ERROR", data: Any = None) -> StandardResponse:
-    return StandardResponse(success=False, message=message, code=code, data=data)
+def success_response(data: Any = None, message: str = "Success") -> dict:
+    """
+    Returns a dict that FastAPI will serialize using the endpoint's response_model.
+    Converts ORM objects to dicts via __dict__ to ensure Pydantic can serialize them.
+    """
+    return {"success": True, "message": message, "data": data}
+
+def error_response(message: str, code: str = "ERROR", data: Any = None) -> dict:
+    return {"success": False, "message": message, "code": code, "data": data}

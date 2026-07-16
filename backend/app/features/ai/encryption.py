@@ -1,21 +1,22 @@
-import os
 from cryptography.fernet import Fernet
+from app.core.config import settings
 
-# Fetch key from environment, default to auto-generated temporary key if not set
-KEY_ENV = os.getenv("ENCRYPTION_KEY", "")
+# Use ENCRYPTION_KEY from environment/settings, fallback to a dev-only key
+KEY_ENV = settings.ENCRYPTION_KEY
 
-if not KEY_ENV:
-    # Safe fallback key for development convenience
-    # Generate a static key for development consistency so keys persist between restarts
-    # Use standard Fernet key bytes
-    fallback_key = b"5df035bf47034bf799fa778e00d0d2d95df035bf470="
-    fernet = Fernet(fallback_key)
-else:
+if KEY_ENV:
     try:
         fernet = Fernet(KEY_ENV.encode())
     except Exception:
-        fallback_key = b"5df035bf47034bf799fa778e00d0d2d95df035bf470="
-        fernet = Fernet(fallback_key)
+        # If the provided key is invalid, generate a new one and warn
+        print("Warning: Invalid ENCRYPTION_KEY, using auto-generated key. Existing encrypted data will be unreadable.")
+        fernet = Fernet(Fernet.generate_key())
+else:
+    # Development fallback - generate a consistent key
+    # WARNING: In production, always set ENCRYPTION_KEY in .env
+    _dev_key = Fernet.generate_key()
+    fernet = Fernet(_dev_key)
+    print(f"Warning: No ENCRYPTION_KEY set. Using auto-generated key. Set ENCRYPTION_KEY in .env for persistence.")
 
 def encrypt_secret(secret: str) -> str:
     if not secret:

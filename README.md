@@ -2,7 +2,7 @@
 
 ![NEXORA Banner](./frontend/public/docs/hero-banner.png)
 
-# NEXORA - PS 010
+# NEXORA
 
 ### Secure Document Intelligence for Enterprise Teams
 
@@ -499,3 +499,10 @@ Features intentionally scoped for post-MVP development:
 
 This project is licensed under the **MIT License**.
 
+---
+
+<div align="center">
+
+Built by **Sarvan Kumar**
+
+</div>
