@@ -1,0 +1,15 @@
+greenlet==3.0.3
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+pgvector
+pydantic
+pydantic-settings
+pyjwt
+cryptography
+python-multipart
+minio
+python-dotenv
+alembic
+pytest
