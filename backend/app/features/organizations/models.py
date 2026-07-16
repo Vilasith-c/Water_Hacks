@@ -13,8 +13,9 @@ class Organization(Base):
     name = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
-    departments = relationship("Department", back_populates="organization")
-    members = relationship("Membership", back_populates="organization")
+    departments = relationship("Department", back_populates="organization", cascade="all, delete-orphan")
+    members = relationship("Membership", back_populates="organization", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="organization", cascade="all, delete-orphan")
 
 class Department(Base):
     __tablename__ = "departments"
@@ -24,7 +25,7 @@ class Department(Base):
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     organization = relationship("Organization", back_populates="departments")
-    teams = relationship("Team", back_populates="department")
+    teams = relationship("Team", back_populates="department", cascade="all, delete-orphan")
     members = relationship("Membership", back_populates="department")
 
 class Team(Base):
@@ -37,15 +38,6 @@ class Team(Base):
     department = relationship("Department", back_populates="teams")
     members = relationship("Membership", back_populates="team")
 
-class User(Base):
-    __tablename__ = "users"
-    id = Column(String, primary_key=True) # Clerk user ID
-    email = Column(String, unique=True, index=True, nullable=False)
-    full_name = Column(String)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-
-    memberships = relationship("Membership", back_populates="user")
-
 class Membership(Base):
     __tablename__ = "memberships"
     id = Column(String, primary_key=True, default=generate_uuid)
@@ -53,7 +45,7 @@ class Membership(Base):
     organization_id = Column(String, ForeignKey("organizations.id"), nullable=False)
     department_id = Column(String, ForeignKey("departments.id"), nullable=True)
     team_id = Column(String, ForeignKey("teams.id"), nullable=True)
-    role = Column(String, default="employee") # e.g., admin, manager, employee
+    role = Column(String, default="employee")  # e.g., admin, manager, employee
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="memberships")
