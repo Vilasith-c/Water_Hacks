@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server';
+import DocumentManager from '@/components/DocumentManager';
 
 export default async function Dashboard() {
   const { userId } = await auth();
@@ -67,6 +68,8 @@ export default async function Dashboard() {
             <button className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">Review Access</button>
           </div>
         </div>
+
+        <DocumentManager organizationId="org_default_test_id" />
       </main>
     </div>
   );

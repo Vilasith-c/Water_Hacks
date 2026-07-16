@@ -3,11 +3,12 @@ services:
     image: ankane/pgvector:latest
     container_name: workspace-ai-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: workspace_user
+      POSTGRES_PASSWORD: mysecretpassword
       POSTGRES_DB: workspace_ai
+      POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - "5432:5432"
+      - "25432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: unless-stopped
