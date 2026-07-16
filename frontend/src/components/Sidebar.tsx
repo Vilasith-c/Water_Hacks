@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth, UserButton } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { 
   LayoutDashboard, 
   FolderGit2, 
@@ -13,7 +13,8 @@ import {
   History, 
   BarChart3, 
   Settings, 
-  Bell 
+  Bell,
+  LogOut
 } from "lucide-react";
 
 interface SidebarProps {
@@ -23,8 +24,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ activeTab, setActiveTab, orgName = "Enterprise Workspace" }: SidebarProps) {
-  const { orgRole } = useAuth();
-  const isAdmin = orgRole === "org:admin" || true; // Fallback to true for development
+  const { user, logout } = useAuth();
+  const isAdmin = true; // Set to true for MVP
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, category: "Workspace" },
@@ -97,10 +98,17 @@ export default function Sidebar({ activeTab, setActiveTab, orgName = "Enterprise
       {/* User Section / Bottom Bar */}
       <div className="p-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <UserButton />
-          <div className="flex flex-col overflow-hidden">
-            <span className="text-xs font-semibold text-white truncate">Profile Settings</span>
-            <span className="text-[10px] text-slate-500 font-medium">Active Session</span>
+          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-xs">
+            {user?.email ? user.email[0].toUpperCase() : "U"}
+          </div>
+          <div className="flex flex-col overflow-hidden max-w-[120px]">
+            <span className="text-xs font-semibold text-white truncate">{user?.email || "tester@example.com"}</span>
+            <button 
+              onClick={() => logout()}
+              className="text-[10px] text-red-400 hover:text-red-300 font-semibold text-left transition-colors"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
         <button 

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Search, Bell, Sparkles, Plus, Landmark } from "lucide-react";
-import { useOrganizationList, useOrganization } from "@clerk/nextjs";
 
 interface TopNavProps {
   onSearch?: (query: string) => void;
@@ -20,27 +19,18 @@ export default function TopNav({
   setOrganizationId
 }: TopNavProps) {
   const [searchVal, setSearchVal] = useState("");
-  const { userMemberships, isLoaded } = useOrganizationList({
-    userMemberships: {
-      infinite: true,
-      keepPreviousData: true,
-    },
-  });
-  const { organization } = useOrganization();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchVal(e.target.value);
     if (onSearch) onSearch(e.target.value);
   };
 
-  const handleOrgChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleOrgChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOrgId = e.target.value;
     setOrganizationId(selectedOrgId);
     
-    // Find the org name
-    const membership = userMemberships.data?.find(m => m.organization.id === selectedOrgId);
-    if (membership && setOrgName) {
-      setOrgName(membership.organization.name);
+    if (setOrgName) {
+      setOrgName(selectedOrgId === "org_default_test_id" ? "Enterprise Workspace" : "Alternate Workspace");
     }
   };
 
@@ -49,24 +39,14 @@ export default function TopNav({
       {/* Left side: Org Switcher / Selector */}
       <div className="flex items-center gap-3">
         <Landmark className="w-5 h-5 text-blue-600" />
-        {isLoaded && userMemberships.data && userMemberships.data.length > 0 ? (
-          <select 
-            onChange={handleOrgChange}
-            value={organization?.id || ""}
-            className="bg-gray-50 border border-gray-200 text-gray-800 text-sm font-semibold rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 transition-all duration-200"
-          >
-            {userMemberships.data.map((mem) => (
-              <option key={mem.organization.id} value={mem.organization.id}>
-                {mem.organization.name}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <span className="font-semibold text-sm text-gray-700 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            {orgName}
-          </span>
-        )}
+        <select 
+          onChange={handleOrgChange}
+          defaultValue="org_default_test_id"
+          className="bg-gray-50 border border-gray-200 text-gray-800 text-sm font-semibold rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 transition-all duration-200"
+        >
+          <option value="org_default_test_id">Enterprise Workspace</option>
+          <option value="org_alternate_test_id">Alternate Workspace</option>
+        </select>
       </div>
 
       {/* Center: Global Search */}

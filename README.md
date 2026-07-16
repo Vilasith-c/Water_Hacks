@@ -1,28 +1,29 @@
 # AI-Powered Enterprise Collaboration Platform
 
-A production-ready enterprise collaboration platform built for secure document management, hierarchical team workflows, and AI-driven document insights. The platform features an immutable audit log, role-based access control, and hybrid semantic search. Built with Next.js, FastAPI, PostgreSQL (pgvector), Clerk, and the Groq API.
+A production-ready enterprise collaboration platform built for secure document management, hierarchical team workflows, and AI-driven document insights. The platform features an immutable audit log, role-based access control, and hybrid search. Built with Next.js, FastAPI, PostgreSQL (pgvector), Firebase Authentication, and the Groq API.
 
 ## Features
 
-- **Secure Authentication & RBAC**: Handled by Clerk Auth and Next.js, with fine-grained access control across Organizations, Departments, and Teams.
-- **AI Document Assistant**: RAG-powered document understanding and hybrid search (Semantic + Keyword) utilizing local embeddings and the Groq LLM API.
+- **Secure Authentication & RBAC**: Handled by Firebase Auth (Email/Password registration and login) and Next.js, with fine-grained access control across Organizations, Departments, and Teams.
+- **AI Document Assistant**: RAG-powered document understanding and search utilizing local embeddings and the Groq LLM API.
 - **Immutable Audit Logging**: A tamper-evident, append-only hash chain tracks every API action for strict enterprise compliance and security.
-- **Document Management & Extraction**: Upload documents to a local S3-compatible MinIO bucket, with async text extraction and vector embedding via FastAPI BackgroundTasks.
-- **Enterprise Dashboard**: A centralized hub for users to view recent activities, permission alerts, and pending workflows.
+- **Document Management & Extraction**: Upload documents, manage nested directory folders, and trigger version history rollbacks. Files are stored locally with metadata (project, department, access level, and tags).
+- **Enterprise Dashboard**: A centralized hub for users to view recent activities, permission alerts, active projects, and document lists.
 
 ## Project Architecture
 
 ```text
 workspace-ai/
-│── frontend/          # Next.js 15, Tailwind, shadcn/ui React application
+│── frontend/          # Next.js 16, Tailwind v4 React application
 │   ├── src/app/       # Application routes and layouts
+│   ├── src/context/   # Authentication Provider Context
 │   └── .env.example   # Frontend configuration example
 │── backend/           # FastAPI Python application
 │   ├── app/
 │   │   ├── api/       # API endpoints and dependencies
 │   │   ├── core/      # Security, config, and JWT validation
 │   │   ├── db/        # SQLAlchemy session and base models
-│   │   └── features/  # Modular backend features (auth, audit, etc.)
+│   │   └── features/  # Modular backend features (users, organizations, etc.)
 │   ├── main.py        # Main FastAPI entrypoint
 │   └── requirements.txt # Python dependencies
 │── docker-compose.yml # PostgreSQL, pgvector, Redis, MinIO, and pgAdmin
@@ -34,7 +35,7 @@ workspace-ai/
 - Node.js 18+ and npm
 - Python 3.11+
 - Docker and Docker Compose
-- A valid [Clerk Account](https://clerk.com/) for authentication keys
+- A valid [Firebase Project](https://console.firebase.google.com/) for authentication setup
 - A valid [Groq API Key](https://console.groq.com/) for LLM inference
 
 ## Installation
@@ -63,7 +64,7 @@ workspace-ai/
 4. **Setup the Frontend**:
    ```bash
    cd ../frontend
-   npm install
+   npm install --legacy-peer-deps
    ```
 
 ## Configuration
@@ -73,17 +74,21 @@ workspace-ai/
    ```bash
    cp .env.example .env.local
    ```
-   Add your Clerk API keys:
+   Add your Firebase Web App configuration credentials:
    ```env
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_publishable_key
-   CLERK_SECRET_KEY=your_secret_key
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.firebasestorage.app
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
    ```
 
 2. **Backend Setup**:
    Navigate to the `backend` folder and create a `.env` file:
    ```env
    DATABASE_URL=postgresql://postgres:password@localhost:5432/workspace_ai
-   CLERK_JWKS_URL=https://<your-clerk-domain>/.well-known/jwks.json
+   FIREBASE_PROJECT_ID=your_project_id
    GROQ_API_KEY=your_groq_api_key
    ```
 

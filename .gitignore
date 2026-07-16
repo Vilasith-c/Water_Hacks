@@ -21,3 +21,6 @@ frontend/build/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Secrets
+backend/*.json

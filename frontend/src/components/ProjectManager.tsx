@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@/context/AuthContext";
 import { FolderGit2, Plus, Calendar, CheckCircle2, Archive, Loader2 } from "lucide-react";
 
 interface Project {

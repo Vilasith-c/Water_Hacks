@@ -38,12 +38,14 @@ from fastapi import APIRouter
 from app.features.users import router as users_router
 from app.features.organizations import router as org_router
 from app.features.projects import router as projects_router
+from app.features.search import router as search_router
 
 api_v1_router = APIRouter(prefix="/api/v1")
 api_v1_router.include_router(doc_router.router)
 api_v1_router.include_router(users_router.router)
 api_v1_router.include_router(org_router.router)
 api_v1_router.include_router(projects_router.router)
+api_v1_router.include_router(search_router.router)
 
 app.include_router(api_v1_router)
 
