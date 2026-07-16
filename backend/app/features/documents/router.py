@@ -5,7 +5,8 @@ from fastapi.responses import FileResponse
 import os
 
 from app.db.session import get_db
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_permission
+from app.core.permissions import PolicyEngine
 from app.features.documents import models, schemas
 from app.features.documents.storage import storage_service
 from app.features.audit.service import AuditService
@@ -307,16 +308,18 @@ def delete_document(
     document_id: str,
     request: Request,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    membership = Depends(require_permission("documents.delete"))
 ):
     doc = db.query(models.Document).filter(models.Document.id == document_id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
         
-    user_id = current_user.get("sub") if isinstance(current_user, dict) else None
+    if not PolicyEngine.can(membership, "documents.delete", doc):
+        raise HTTPException(status_code=403, detail="Not authorized to delete this document")
+        
     AuditService.log_action(
         db=db,
-        user_id=user_id,
+        user_id=membership.user_id,
         action="Delete Document",
         resource=doc.filename,
         resource_id=doc.id,

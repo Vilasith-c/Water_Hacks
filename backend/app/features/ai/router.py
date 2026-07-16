@@ -4,10 +4,11 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Header, Request, Query as QueryParam
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, require_permission
 from app.db.session import get_db
 from app.features.ai import schemas, service
 from app.features.audit.service import AuditService
+from app.core.permissions import PolicyEngine
 
 router = APIRouter(tags=["AI Gateway"])
 
@@ -49,8 +50,14 @@ def save_credentials(
 def get_credentials(
     org_id: str,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
+    membership = Depends(require_permission("ai.settings.read"))
 ):
+    class OrgResource:
+        organization_id = org_id
+
+    if not PolicyEngine.can(membership, "ai.settings.read", OrgResource()):
+        raise HTTPException(status_code=403, detail="Not authorized to read AI credentials")
+
     creds = service.get_credentials(db, org_id)
     res = []
     for cred in creds:
