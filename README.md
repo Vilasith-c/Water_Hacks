@@ -2,7 +2,7 @@
 
 ![NEXORA Banner](./frontend/public/docs/hero-banner.png)
 
-# NEXORA
+# NEXORA - PS 010
 
 ### Secure Document Intelligence for Enterprise Teams
 
