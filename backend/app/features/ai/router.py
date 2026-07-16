@@ -4,10 +4,11 @@ import os
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
 from typing import List, Optional, Any, Dict
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user
+from app.db.session import get_db
 from app.features.ai import schemas, service
 
-router = APIRouter(tags=["AI Gateway"])
+router = APIRouter(prefix="/ai", tags=["AI Gateway"])
 
 @router.post("/credentials", response_model=schemas.AICredentialResponse)
 def save_credentials(
@@ -113,29 +114,25 @@ def list_providers():
 @router.post("/chat", response_model=schemas.ChatCompletionResponse)
 def chat_completion(
     request: schemas.ChatCompletionRequest,
-    authorization: Optional[str] = Header(None),
-    x_ai_provider: Optional[str] = Header(None),
     organization_id: Optional[str] = "org_default_test_id",
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
     user_id = current_user.get("sub")
-    api_key = None
-    provider = x_ai_provider or request.provider
     
-    if authorization and authorization.lower().startswith("bearer "):
-        api_key = authorization[7:].strip()
+    if not request.provider:
+        raise HTTPException(status_code=400, detail="AI Provider must be specified.")
         
     try:
         res = service.execute_chat_completion(
             db=db,
             user_id=user_id,
             org_id=organization_id,
-            prompt=request.prompt,
+            prompt=request.message,
             system_prompt=request.system_prompt,
-            provider=provider,
+            provider=request.provider,
             model=request.model,
-            header_key=api_key,
+            header_key=request.api_key,
             temperature=request.temperature,
             max_tokens=request.max_tokens
         )
