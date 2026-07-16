@@ -109,7 +109,7 @@ export default function DashboardApp() {
       }
 
       // Get documents count
-      const docsRes = await fetch(`http://127.0.0.1:8000/api/v1/documents/org/${organizationId}`, {
+      const docsRes = await fetch(`/api/v1/documents/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (docsRes.ok) {
@@ -118,7 +118,7 @@ export default function DashboardApp() {
       }
 
       // Get folders count
-      const foldersRes = await fetch(`http://127.0.0.1:8000/api/v1/documents/folders/${organizationId}`, {
+      const foldersRes = await fetch(`/api/v1/documents/folders/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (foldersRes.ok) {
@@ -140,7 +140,7 @@ export default function DashboardApp() {
       const token = await getToken();
       
       // Fetch metadata providers list
-      const provsRes = await fetch("http://127.0.0.1:8000/api/v1/providers", {
+      const provsRes = await fetch("/api/v1/ai/providers", {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (provsRes.ok) {
@@ -149,7 +149,7 @@ export default function DashboardApp() {
       }
 
       // Fetch saved credentials
-      const credsRes = await fetch(`http://127.0.0.1:8000/api/v1/credentials/org/${organizationId}`, {
+      const credsRes = await fetch(`/api/v1/ai/credentials/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (credsRes.ok) {
@@ -174,7 +174,7 @@ export default function DashboardApp() {
     setIsSearching(true);
     try {
       const token = await getToken();
-      let url = `http://127.0.0.1:8000/api/v1/search?organization_id=${organizationId}`;
+      let url = `/api/v1/search?organization_id=${organizationId}`;
       if (searchQuery) url += `&q=${encodeURIComponent(searchQuery)}`;
       if (searchFilterDept) url += `&department_id=${encodeURIComponent(searchFilterDept)}`;
       if (searchFilterAccess) url += `&access_level=${encodeURIComponent(searchFilterAccess)}`;
@@ -258,7 +258,7 @@ export default function DashboardApp() {
     setTestResponse(null);
     try {
       const token = await getToken();
-      const res = await fetch("http://127.0.0.1:8000/api/v1/test", {
+      const res = await fetch("/api/v1/ai/test", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -293,7 +293,7 @@ export default function DashboardApp() {
     setIsSavingCreds(true);
     try {
       const token = await getToken();
-      const res = await fetch("http://127.0.0.1:8000/api/v1/credentials", {
+      const res = await fetch("/api/v1/ai/credentials", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -345,18 +345,14 @@ export default function DashboardApp() {
         Authorization: `Bearer ${token}`
       };
 
-      if (isStatelessMode && statelessKey) {
-        headers["Authorization"] = `Bearer ${statelessKey}`;
-        headers["X-AI-Provider"] = chatProvider;
-      }
-
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/chat?organization_id=${organizationId}`, {
+      const res = await fetch(`/api/v1/ai/chat?organization_id=${organizationId}`, {
         method: "POST",
         headers: headers,
         body: JSON.stringify({
           provider: isStatelessMode ? chatProvider : undefined, // Stateful falls back to db
           model: chatModel,
           prompt: userPrompt,
+          api_key: isStatelessMode && statelessKey ? statelessKey : undefined,
           temperature: chatTemp,
           max_tokens: chatMaxTokens
         })

@@ -36,7 +36,7 @@ export default function ProjectManager({ organizationId, isOpenModal, setIsOpenM
     setError(null);
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/v1/projects/org/${organizationId}`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/projects/org/${organizationId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -71,7 +71,7 @@ export default function ProjectManager({ organizationId, isOpenModal, setIsOpenM
     setIsSubmitting(true);
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/v1/projects", {
+      const res = await fetch("http://127.0.0.1:8000/api/v1/projects", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

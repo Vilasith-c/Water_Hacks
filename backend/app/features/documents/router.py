@@ -9,7 +9,7 @@ from app.api.deps import get_current_user
 from app.features.documents import models, schemas
 from app.features.documents.storage import storage_service
 
-router = APIRouter(prefix="/api/documents", tags=["documents"])
+router = APIRouter(prefix="/documents", tags=["documents"])
 
 @router.post("/folders", response_model=schemas.FolderResponse)
 def create_folder(

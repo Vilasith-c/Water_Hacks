@@ -42,7 +42,7 @@ class ChatCompletionRequest(BaseModel):
     provider: Optional[str] = None
     model: Optional[str] = None
     api_key: Optional[str] = None
-    message: str
+    prompt: str
     system_prompt: Optional[str] = "You are a helpful, secure enterprise AI assistant."
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None

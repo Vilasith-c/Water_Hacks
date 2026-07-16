@@ -108,7 +108,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
       const token = await getToken();
       
       // Fetch Folders
-      const foldersRes = await fetch(`http://localhost:8000/api/documents/folders/${organizationId}`, {
+      const foldersRes = await fetch(`/api/v1/documents/folders/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (foldersRes.ok) {
@@ -117,7 +117,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
       }
 
       // Fetch Documents
-      const docsRes = await fetch(`http://localhost:8000/api/documents/org/${organizationId}`, {
+      const docsRes = await fetch(`/api/v1/documents/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (docsRes.ok) {
@@ -126,7 +126,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
       }
 
       // Fetch Projects
-      const projectsRes = await fetch(`http://localhost:8000/api/v1/projects/org/${organizationId}`, {
+      const projectsRes = await fetch(`/api/v1/projects/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (projectsRes.ok) {
@@ -153,7 +153,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
       if (!selectedDoc) return;
       try {
         const token = await getToken();
-        const res = await fetch(`http://localhost:8000/api/documents/${selectedDoc.id}/versions`, {
+        const res = await fetch(`/api/v1/documents/${selectedDoc.id}/versions`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
@@ -183,7 +183,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
 
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/documents/folders", {
+      const res = await fetch("/api/v1/documents/folders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -209,7 +209,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
     if (!confirm("Are you sure you want to delete this folder and all its contents?")) return;
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/documents/folders/${folderId}`, {
+      const res = await fetch(`/api/v1/documents/folders/${folderId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -241,7 +241,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
 
     try {
       const token = await getToken();
-      const res = await fetch("http://localhost:8000/api/documents/upload", {
+      const res = await fetch("/api/v1/documents/upload", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -271,7 +271,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
 
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/documents/${selectedDoc.id}/version`, {
+      const res = await fetch(`/api/v1/documents/${selectedDoc.id}/version`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`
@@ -296,7 +296,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
     if (!selectedDoc) return;
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/documents/${selectedDoc.id}/versions/${versionId}/restore`, {
+      const res = await fetch(`/api/v1/documents/${selectedDoc.id}/versions/${versionId}/restore`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -318,7 +318,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
     setIsUpdatingMeta(true);
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/documents/${selectedDoc.id}`, {
+      const res = await fetch(`/api/v1/documents/${selectedDoc.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -351,7 +351,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
 
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/documents/${selectedDoc.id}/share`, {
+      const res = await fetch(`/api/v1/documents/${selectedDoc.id}/share`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -377,7 +377,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
     if (!confirm("Are you sure you want to delete this document?")) return;
     try {
       const token = await getToken();
-      const res = await fetch(`http://localhost:8000/api/documents/${docId}`, {
+      const res = await fetch(`/api/v1/documents/${docId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -611,7 +611,7 @@ export default function DocumentManager({ organizationId }: { organizationId: st
                       </div>
                     )}
                     <a
-                      href={`http://localhost:8000/api/documents/${doc.id}/download`}
+                      href={`/api/v1/documents/${doc.id}/download`}
                       target="_blank"
                       rel="noreferrer"
                       onClick={e => e.stopPropagation()}

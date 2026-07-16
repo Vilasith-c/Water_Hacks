@@ -23,10 +23,26 @@ app = FastAPI(
     version="1.0.0",
 )
 
+@app.on_event("startup")
+def seed_default_org():
+    from app.db.session import SessionLocal
+    from app.features.organizations.models import Organization
+    db = SessionLocal()
+    try:
+        org = db.query(Organization).filter(Organization.id == "org_default_test_id").first()
+        if not org:
+            org = Organization(id="org_default_test_id", name="Default Organization")
+            db.add(org)
+            db.commit()
+    except Exception as e:
+        print("Failed to seed default org:", e)
+    finally:
+        db.close()
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=["http://localhost:3000", "https://sulk-escapable-prankster.ngrok-free.dev"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -49,7 +65,7 @@ api_v1_router.include_router(users_router.router)
 api_v1_router.include_router(org_router.router)
 api_v1_router.include_router(projects_router.router)
 api_v1_router.include_router(search_router.router)
-api_v1_router.include_router(ai_router.router)
+api_v1_router.include_router(ai_router.router, prefix="/ai")
 
 app.include_router(api_v1_router)
 

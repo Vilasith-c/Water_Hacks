@@ -8,7 +8,7 @@ from app.api.deps import get_current_user
 from app.db.session import get_db
 from app.features.ai import schemas, service
 
-router = APIRouter(prefix="/ai", tags=["AI Gateway"])
+router = APIRouter(tags=["AI Gateway"])
 
 @router.post("/credentials", response_model=schemas.AICredentialResponse)
 def save_credentials(
@@ -120,15 +120,12 @@ def chat_completion(
 ):
     user_id = current_user.get("sub")
     
-    if not request.provider:
-        raise HTTPException(status_code=400, detail="AI Provider must be specified.")
-        
     try:
         res = service.execute_chat_completion(
             db=db,
             user_id=user_id,
             org_id=organization_id,
-            prompt=request.message,
+            prompt=request.prompt,
             system_prompt=request.system_prompt,
             provider=request.provider,
             model=request.model,

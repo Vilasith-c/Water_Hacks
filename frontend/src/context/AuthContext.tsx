@@ -27,7 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(firebaseUser);
       setLoading(false);
     });
-    return () => unsubscribe();
+    // Fallback: if auth doesn't resolve in 5s (e.g. blocked cookies), show landing page
+    const timeout = setTimeout(() => setLoading(false), 5000);
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const getToken = async () => {
