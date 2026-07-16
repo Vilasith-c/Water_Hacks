@@ -21,8 +21,12 @@ import {
   Send,
   Search,
   Folder,
-  Landmark,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Key,
+  Database,
+  Cpu,
+  RefreshCw,
+  Info
 } from "lucide-react";
 
 export default function Home() {
@@ -53,18 +57,48 @@ export default function Home() {
 
   const mockDepts = ["Marketing", "HR", "Finance", "Engineering", "Operations", "Legal"];
 
-  // Sync user profile and load stats
+  // AI Integration States
+  const [providersMetadata, setProvidersMetadata] = useState<any[]>([]);
+  const [orgCredentials, setOrgCredentials] = useState<any[]>([]);
+  const [isMetadataLoading, setIsMetadataLoading] = useState(false);
+
+  // AI Settings configuration form
+  const [settingsProvider, setSettingsProvider] = useState("groq");
+  const [settingsModel, setSettingsModel] = useState("llama-3.3-70b-versatile");
+  const [settingsSecretKey, setSettingsSecretKey] = useState("");
+  const [settingsBaseUrl, setSettingsBaseUrl] = useState("");
+  const [settingsTemp, setSettingsTemp] = useState(0.7);
+  const [settingsMaxTokens, setSettingsMaxTokens] = useState(2048);
+  const [settingsEnabled, setSettingsEnabled] = useState(true);
+  const [isSavingCreds, setIsSavingCreds] = useState(false);
+  const [isTestingConnection, setIsTestingConnection] = useState(false);
+  const [testResponse, setTestResponse] = useState<{ status: string; message: string; latency_ms?: number } | null>(null);
+
+  // AI Chat states
+  const [chatMessages, setChatMessages] = useState<any[]>([
+    {
+      role: "ai",
+      content: "Hello! I am your AI Document Assistant. You can upload files on the Documents page and ask me to summarize them, explain policies, or answer queries using your configured LLM gateway.",
+      provider: "system",
+      model: "initialization"
+    }
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatProvider, setChatProvider] = useState("groq");
+  const [chatModel, setChatModel] = useState("llama-3.3-70b-versatile");
+  const [chatTemp, setChatTemp] = useState(0.7);
+  const [chatMaxTokens, setChatMaxTokens] = useState(2048);
+  const [isStatelessMode, setIsStatelessMode] = useState(false);
+  const [statelessKey, setStatelessKey] = useState("");
+  const [isChatSending, setIsChatSending] = useState(false);
+
+  // Sync stats
   const fetchDashboardStats = async () => {
     if (!userId || !organizationId) return;
     setStatsLoading(true);
     try {
       const token = await getToken();
       
-      // Sync profile
-      await fetch("http://localhost:8000/api/v1/users/me", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
       // Get projects count
       const projRes = await fetch(`http://localhost:8000/api/v1/projects/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -75,7 +109,7 @@ export default function Home() {
       }
 
       // Get documents count
-      const docsRes = await fetch(`http://localhost:8000/api/documents/org/${organizationId}`, {
+      const docsRes = await fetch(`http://127.0.0.1:8000/api/v1/documents/org/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (docsRes.ok) {
@@ -84,7 +118,7 @@ export default function Home() {
       }
 
       // Get folders count
-      const foldersRes = await fetch(`http://localhost:8000/api/documents/folders/${organizationId}`, {
+      const foldersRes = await fetch(`http://127.0.0.1:8000/api/v1/documents/folders/${organizationId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (foldersRes.ok) {
@@ -98,8 +132,40 @@ export default function Home() {
     }
   };
 
+  // Fetch AI configurations
+  const fetchAIConfiguration = async () => {
+    if (!userId || !organizationId) return;
+    setIsMetadataLoading(true);
+    try {
+      const token = await getToken();
+      
+      // Fetch metadata providers list
+      const provsRes = await fetch("http://127.0.0.1:8000/api/v1/providers", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (provsRes.ok) {
+        const data = await provsRes.json();
+        setProvidersMetadata(data);
+      }
+
+      // Fetch saved credentials
+      const credsRes = await fetch(`http://127.0.0.1:8000/api/v1/credentials/org/${organizationId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (credsRes.ok) {
+        const data = await credsRes.json();
+        setOrgCredentials(data);
+      }
+    } catch (err) {
+      console.error("Failed to load AI providers settings", err);
+    } finally {
+      setIsMetadataLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchDashboardStats();
+    fetchAIConfiguration();
   }, [userId, organizationId]);
 
   // Hook search execution
@@ -108,7 +174,7 @@ export default function Home() {
     setIsSearching(true);
     try {
       const token = await getToken();
-      let url = `http://localhost:8000/api/v1/search?organization_id=${organizationId}`;
+      let url = `http://127.0.0.1:8000/api/v1/search?organization_id=${organizationId}`;
       if (searchQuery) url += `&q=${encodeURIComponent(searchQuery)}`;
       if (searchFilterDept) url += `&department_id=${encodeURIComponent(searchFilterDept)}`;
       if (searchFilterAccess) url += `&access_level=${encodeURIComponent(searchFilterAccess)}`;
@@ -166,6 +232,167 @@ export default function Home() {
     ]);
   }, []);
 
+  // Update default models when provider changes in settings form
+  useEffect(() => {
+    const selectedMeta = providersMetadata.find(p => p.id === settingsProvider);
+    if (selectedMeta) {
+      setSettingsModel(selectedMeta.default_model);
+    }
+  }, [settingsProvider, providersMetadata]);
+
+  // Update default models when provider changes in Chat view
+  useEffect(() => {
+    const selectedMeta = providersMetadata.find(p => p.id === chatProvider);
+    if (selectedMeta) {
+      setChatModel(selectedMeta.default_model);
+    }
+  }, [chatProvider, providersMetadata]);
+
+  // Connection tester
+  const handleTestConnection = async () => {
+    if (!settingsSecretKey) {
+      setTestResponse({ status: "error", message: "Please supply an API Key / Token to test." });
+      return;
+    }
+    setIsTestingConnection(true);
+    setTestResponse(null);
+    try {
+      const token = await getToken();
+      const res = await fetch("http://127.0.0.1:8000/api/v1/test", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          provider: settingsProvider,
+          model: settingsModel,
+          secret_key: settingsSecretKey,
+          base_url: settingsBaseUrl || null
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTestResponse(data);
+      } else {
+        setTestResponse({ status: "error", message: "Failed to query test connection." });
+      }
+    } catch (err: any) {
+      setTestResponse({ status: "error", message: err.message || "Network request failed." });
+    } finally {
+      setIsTestingConnection(false);
+    }
+  };
+
+  // Credentials saver
+  const handleSaveCredentials = async () => {
+    if (!settingsSecretKey) {
+      alert("Please supply an API Key / Token.");
+      return;
+    }
+    setIsSavingCreds(true);
+    try {
+      const token = await getToken();
+      const res = await fetch("http://127.0.0.1:8000/api/v1/credentials", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          organization_id: organizationId,
+          provider: settingsProvider,
+          model: settingsModel,
+          secret_key: settingsSecretKey,
+          base_url: settingsBaseUrl || null,
+          temperature: settingsTemp,
+          max_tokens: settingsMaxTokens,
+          enabled: settingsEnabled
+        })
+      });
+      if (res.ok) {
+        alert("AI Provider Credentials saved successfully!");
+        setSettingsSecretKey(""); // Clear secret field
+        fetchAIConfiguration(); // Refresh saved credentials list
+      } else {
+        alert("Failed to save credentials.");
+      }
+    } catch (err: any) {
+      alert(`Error saving credentials: ${err.message}`);
+    } finally {
+      setIsSavingCreds(false);
+    }
+  };
+
+  // Chat sender
+  const handleSendChatMessage = async () => {
+    if (!chatInput.trim()) return;
+    
+    const userPrompt = chatInput;
+    setChatInput("");
+    setIsChatSending(true);
+
+    const newUserMsg = {
+      role: "user",
+      content: userPrompt
+    };
+    setChatMessages(prev => [...prev, newUserMsg]);
+
+    try {
+      const token = await getToken();
+      const headers: any = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      };
+
+      if (isStatelessMode && statelessKey) {
+        headers["Authorization"] = `Bearer ${statelessKey}`;
+        headers["X-AI-Provider"] = chatProvider;
+      }
+
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/chat?organization_id=${organizationId}`, {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify({
+          provider: isStatelessMode ? chatProvider : undefined, // Stateful falls back to db
+          model: chatModel,
+          prompt: userPrompt,
+          temperature: chatTemp,
+          max_tokens: chatMaxTokens
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setChatMessages(prev => [...prev, {
+          role: "ai",
+          content: data.content,
+          provider: data.provider,
+          model: data.model,
+          latency: data.latency_ms,
+          tokens: data.tokens
+        }]);
+      } else {
+        const errBody = await res.text();
+        setChatMessages(prev => [...prev, {
+          role: "ai",
+          content: `Gateway Error: ${errBody}`,
+          provider: "error",
+          model: "system"
+        }]);
+      }
+    } catch (err: any) {
+      setChatMessages(prev => [...prev, {
+        role: "ai",
+        content: `Network Error: ${err.message}`,
+        provider: "error",
+        model: "system"
+      }]);
+    } finally {
+      setIsChatSending(false);
+    }
+  };
+
   if (!isLoaded) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -217,6 +444,7 @@ export default function Home() {
           setOrganizationId={(id) => {
             setOrganizationId(id);
             fetchDashboardStats();
+            fetchAIConfiguration();
           }}
           onOpenCreateProject={() => setIsOpenCreateProject(true)} 
           onSearch={(query) => {
@@ -499,40 +727,119 @@ export default function Home() {
           {/* TAB: AI ASSISTANT */}
           {activeTab === "ai" && (
             <div className="animate-fade-in h-[calc(100vh-180px)] flex flex-col bg-white border border-gray-150 rounded-xl overflow-hidden shadow-sm">
-              <div className="bg-slate-900 text-white p-5 border-b border-slate-800 flex items-center justify-between">
+              <div className="bg-slate-900 text-white p-4 border-b border-slate-800 flex flex-wrap gap-4 items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-indigo-500/25 flex items-center justify-center border border-indigo-400/20 text-indigo-300">
                     <MessageSquareCode className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm">Gemini Document AI</h3>
+                    <h3 className="font-bold text-sm">Enterprise AI Gateway</h3>
                     <span className="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Ready to assist
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Stateless / Stateful BYOK Active
                     </span>
                   </div>
+                </div>
+
+                {/* Gateway config bar */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <select 
+                    value={chatProvider}
+                    onChange={(e) => setChatProvider(e.target.value)}
+                    className="bg-slate-800 text-white border border-slate-700 text-xs font-semibold rounded-lg p-2 focus:outline-none"
+                  >
+                    {providersMetadata.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+
+                  <select 
+                    value={chatModel}
+                    onChange={(e) => setChatModel(e.target.value)}
+                    className="bg-slate-800 text-white border border-slate-700 text-xs font-semibold rounded-lg p-2 focus:outline-none"
+                  >
+                    {providersMetadata.find(p => p.id === chatProvider)?.models.map((m: string) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+
+                  <div className="flex items-center gap-2 bg-slate-800 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                    <input 
+                      type="checkbox"
+                      id="statelessToggle"
+                      checked={isStatelessMode}
+                      onChange={(e) => setIsStatelessMode(e.target.checked)}
+                      className="rounded accent-blue-500 focus:ring-0"
+                    />
+                    <label htmlFor="statelessToggle" className="cursor-pointer font-semibold">Custom Key</label>
+                  </div>
+
+                  {isStatelessMode && (
+                    <input 
+                      type="password"
+                      placeholder="Bearer API Key..."
+                      value={statelessKey}
+                      onChange={(e) => setStatelessKey(e.target.value)}
+                      className="bg-slate-800 text-white border border-slate-700 text-xs rounded-lg p-2 placeholder-slate-500 focus:outline-none w-32"
+                    />
+                  )}
                 </div>
               </div>
 
               {/* Chat messages layout */}
               <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-slate-50/50">
-                <div className="flex gap-3 max-w-xl">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">AI</div>
-                  <div className="bg-white border border-gray-150 p-4 rounded-xl shadow-sm text-sm text-gray-800 leading-relaxed">
-                    Hello! I'm your Gemini AI Document Assistant. You can upload files on the Documents page and ask me to summarize them, explain policies, or run semantic search queries. How can I help you today?
-                  </div>
-                </div>
+                {chatMessages.map((msg, index) => {
+                  const isAI = msg.role === "ai";
+                  return (
+                    <div key={index} className={`flex gap-3 ${isAI ? "max-w-xl" : "max-w-xl ml-auto justify-end"}`}>
+                      {isAI && (
+                        <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">AI</div>
+                      )}
+                      <div className={`p-4 rounded-xl text-sm leading-relaxed shadow-xs ${
+                        isAI 
+                          ? "bg-white border border-gray-150 text-gray-800" 
+                          : "bg-blue-600 text-white"
+                      }`}>
+                        <p>{msg.content}</p>
+                        
+                        {isAI && msg.provider !== "system" && msg.provider !== "error" && (
+                          <div className="mt-3 pt-2 border-t border-gray-100 flex items-center gap-3 text-[10px] text-gray-400 font-semibold">
+                            <span className="bg-slate-100 px-2 py-0.5 rounded uppercase">{msg.provider}</span>
+                            <span>Model: {msg.model}</span>
+                            {msg.latency && <span>{msg.latency} ms</span>}
+                            {msg.tokens && <span>{msg.tokens} tokens</span>}
+                          </div>
+                        )}
+                      </div>
+                      {!isAI && (
+                        <div className="w-8 h-8 rounded-lg bg-blue-700 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">U</div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Input section */}
               <div className="p-4 bg-white border-t border-gray-100 flex gap-3 items-center">
                 <input
                   type="text"
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSendChatMessage()}
+                  disabled={isChatSending}
                   placeholder="Ask a question about your enterprise documents..."
                   className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all duration-200"
                 />
-                <button className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg shadow-sm shadow-blue-600/25 transition-all duration-200 active:scale-95">
-                  <Send className="w-4 h-4" />
+                <button 
+                  onClick={handleSendChatMessage}
+                  disabled={isChatSending}
+                  className="bg-blue-600 hover:bg-blue-700 text-white p-3.5 rounded-lg shadow-sm shadow-blue-600/25 transition-all duration-200 active:scale-95 disabled:opacity-50"
+                >
+                  {isChatSending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -577,8 +884,180 @@ export default function Home() {
             </div>
           )}
 
+          {/* TAB: SETTINGS (PRO / AI GATEWAY CONFIG) */}
+          {activeTab === "settings" && (
+            <div className="animate-fade-in space-y-8">
+              <div>
+                <h1 className="text-xl font-bold text-gray-800">AI Gateway Settings</h1>
+                <p className="text-sm text-gray-500 font-medium">Configure credentials and defaults for your Bring Your Own Key (BYOK) providers.</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Configuration form card */}
+                <div className="lg:col-span-2 bg-white border border-gray-150 p-6 rounded-xl shadow-sm space-y-6">
+                  <h2 className="text-base font-bold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-3">
+                    <Key className="w-5 h-5 text-blue-600" />
+                    <span>Provider Credentials Manager</span>
+                  </h2>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Provider</label>
+                      <select
+                        value={settingsProvider}
+                        onChange={(e) => setSettingsProvider(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 font-medium focus:outline-none"
+                      >
+                        {providersMetadata.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Default Model</label>
+                      <select
+                        value={settingsModel}
+                        onChange={(e) => setSettingsModel(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 font-medium focus:outline-none"
+                      >
+                        {providersMetadata.find(p => p.id === settingsProvider)?.models.map((m: string) => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">API Token / Secret Key</label>
+                      <input
+                        type="password"
+                        placeholder="Enter API key"
+                        value={settingsSecretKey}
+                        onChange={(e) => setSettingsSecretKey(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Custom Base URL (Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. https://api.groq.com/openai/v1"
+                        value={settingsBaseUrl}
+                        onChange={(e) => setSettingsBaseUrl(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Temperature: {settingsTemp}</label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="2"
+                        step="0.1"
+                        value={settingsTemp}
+                        onChange={(e) => setSettingsTemp(parseFloat(e.target.value))}
+                        className="w-full accent-blue-600 mt-2"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Max Output Tokens: {settingsMaxTokens}</label>
+                      <input
+                        type="number"
+                        value={settingsMaxTokens}
+                        onChange={(e) => setSettingsMaxTokens(parseInt(e.target.value) || 2048)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-sm focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Actions buttons */}
+                  <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-100 justify-end">
+                    <button
+                      onClick={handleTestConnection}
+                      disabled={isTestingConnection || !settingsSecretKey}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-3 rounded-lg text-xs flex items-center gap-2 transition duration-200 active:scale-95 disabled:opacity-50"
+                    >
+                      {isTestingConnection ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                      <span>Test Connection</span>
+                    </button>
+
+                    <button
+                      onClick={handleSaveCredentials}
+                      disabled={isSavingCreds || !settingsSecretKey}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg text-xs flex items-center gap-2 shadow-sm transition duration-200 active:scale-95 disabled:opacity-50"
+                    >
+                      {isSavingCreds ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4" />
+                      )}
+                      <span>Save Configuration</span>
+                    </button>
+                  </div>
+
+                  {/* Connection check alert */}
+                  {testResponse && (
+                    <div className={`p-4 rounded-lg border text-xs font-medium ${
+                      testResponse.status === "success" 
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700" 
+                        : "bg-red-50 border-red-200 text-red-700"
+                    }`}>
+                      <p className="font-bold mb-1">Result: {testResponse.status.toUpperCase()}</p>
+                      <p>{testResponse.message}</p>
+                      {testResponse.latency_ms && <p className="mt-1">Latency: {testResponse.latency_ms} ms</p>}
+                    </div>
+                  )}
+                </div>
+
+                {/* Info side pane */}
+                <div className="bg-gradient-to-tr from-slate-900 to-indigo-950 text-white border border-indigo-950 p-6 rounded-xl shadow-lg space-y-6">
+                  <h2 className="text-base font-bold text-indigo-100 flex items-center gap-2 border-b border-indigo-900/40 pb-3">
+                    <Database className="w-5 h-5 text-indigo-400" />
+                    <span>Configured Gateway Providers</span>
+                  </h2>
+
+                  <div className="space-y-4">
+                    {isMetadataLoading ? (
+                      <Loader2 className="w-6 h-6 animate-spin text-indigo-400 mx-auto" />
+                    ) : orgCredentials.length === 0 ? (
+                      <p className="text-xs text-indigo-300/80 leading-relaxed font-medium">
+                        No stateful database configurations configured yet. All chat completions will run on stateless header mode or fallback to default settings.
+                      </p>
+                    ) : (
+                      orgCredentials.map(cred => (
+                        <div key={cred.id} className="bg-slate-950/40 border border-slate-900/60 p-3 rounded-lg flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-bold text-white block uppercase tracking-wider">{cred.provider}</span>
+                            <span className="text-[10px] text-slate-400">Default Model: {cred.model}</span>
+                          </div>
+                          <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold px-2 py-0.5 rounded">
+                            Configured
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  <div className="pt-4 border-t border-indigo-900/40 space-y-3">
+                    <div className="flex gap-2.5 text-xs text-indigo-200 leading-relaxed">
+                      <Info className="w-4 h-4 shrink-0 text-indigo-400" />
+                      <span>Saved credentials are encrypted at rest using symmetric key cryptography and are never leaked to the client interface.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Fallback placeholers for unfinished tabs */}
-          {["members", "departments", "settings", "analytics", "notifications"].includes(activeTab) && (
+          {["members", "departments", "analytics", "notifications"].includes(activeTab) && (
             <div className="bg-white border border-gray-100 rounded-xl p-12 text-center shadow-sm animate-fade-in">
               <h2 className="text-lg font-bold text-gray-800 capitalize mb-2">{activeTab} Section</h2>
               <p className="text-sm text-gray-500 max-w-sm mx-auto">
